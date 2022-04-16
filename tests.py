@@ -5,7 +5,8 @@ import main
 class TestCase(unittest.TestCase):
 
     def test1(self):
-        pass
+        expected = "Hello World"
+        self.assertEqual(main.main(), expected)
 
 
 if __name__ == '__main__':
