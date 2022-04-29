@@ -100,8 +100,8 @@ def save_mfcc(dataset_path, audio_files_dir_path, json_path):
         "mapping": ['International', 'Blues', 'Jazz', 'Classical', 'Old-Time / Historic',
                     'Country', 'Pop', 'Rock', 'Easy Listening', 'Soul-RnB', 'Electronic',
                     'Folk', 'Spoken', 'Hip-Hop', 'Experimental', 'Instrumental'],
-        "mfcc": [], # mfcc data arrays
-        "labels": [] # segment labels by "mapping" index
+        "mfcc": [],  # mfcc data arrays
+        "labels": []  # segment labels by "mapping" index
     }
 
     # object to store config information for processing
@@ -129,12 +129,12 @@ def save_mfcc(dataset_path, audio_files_dir_path, json_path):
     # isolate indexed file list from dataframe
     file_list_array = df['filepath'].to_numpy()
 
-    # loop through files in the dataframe
-    for index, file in enumerate(file_list_array):
-
     # # for TESTING
     # for index in range(0, 5):
         # file = file_list_array[index]
+
+    # loop through files in the dataframe
+    for index, file in enumerate(file_list_array):
 
         # combine directory path with file path
         file = audio_files_dir_path + file
