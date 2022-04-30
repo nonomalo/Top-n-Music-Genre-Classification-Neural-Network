@@ -11,6 +11,7 @@ import numpy as np
 import librosa
 import json
 from sklearn.utils import shuffle
+import math
 
 
 genre_num_dict = {
@@ -42,8 +43,14 @@ def process_track(file_path, sample_info):
     :return: list of sequential mfccs for the audio file
     """
 
+    expected_signal_length = sample_info['sample_rate'] * sample_info['track_duration']
+
     # load audio file as floating point time series
     signal, sr = librosa.load(file_path, sr=sample_info['sample_rate'])
+
+    # restrict signal length to maintain consistent shape along ndarrays
+    if signal.shape[0] > expected_signal_length:
+        signal = signal[:expected_signal_length]
 
     # apply short-term Fourier transform
     stft = np.abs(librosa.stft(signal, n_fft=sample_info['n_fft'], hop_length=sample_info['hop_length']))
@@ -54,9 +61,6 @@ def process_track(file_path, sample_info):
 
     # generate mfcc for audio track (mel-frequency cepstral coefficients)
     mfcc = librosa.feature.mfcc(S=db, n_mfcc=sample_info['n_mfcc'])
-
-    # add dimension representing channels (to mimic image tensors)
-    mfcc = np.expand_dims(mfcc, -1)
 
     return mfcc
 
@@ -79,6 +83,9 @@ def process_track_list(dataset_path, audio_files_dir_path, json_path):
                    'n_fft': 2048,
                    'hop_length': 1024}
 
+    sample_info['expected_mfcc_length'] = \
+        math.ceil((sample_info['sample_rate'] * sample_info['track_duration']) / sample_info['hop_length'])
+
     # create df from csv file and shuffle the data
     df = pd.read_csv(dataset_path)
     df = shuffle(df).reset_index(drop=True)
@@ -86,7 +93,6 @@ def process_track_list(dataset_path, audio_files_dir_path, json_path):
     # create genre array that maps to the track index
     top_genres_array = df['top_genre_id'].to_numpy()
     genre_labels = [genre_num_dict[genre_id] for genre_id in top_genres_array]
-    data['labels'] = genre_labels
 
     count = 0
 
@@ -105,7 +111,11 @@ def process_track_list(dataset_path, audio_files_dir_path, json_path):
 
         # save mfccs and corresponding genre labels
         mfccs = process_track(file, sample_info)
+        if mfccs.shape != (sample_info['n_mfcc'], sample_info['expected_mfcc_length']):
+            print('mfcc shape error: {}'.format(mfccs.shape))
+
         data['mfcc'].append(mfccs.tolist())
+        data['labels'].append(genre_labels[index])
 
         # display count as we process
         count += 1
