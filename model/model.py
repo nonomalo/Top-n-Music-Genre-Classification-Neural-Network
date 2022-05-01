@@ -1,5 +1,5 @@
 """Builds, trains, and evaluates a 2D convolutional neural network
-on a dataset for music genre prediction.
+model on a dataset for music genre prediction.
 
 Path to JSON file containing dataset must be provided.
 """
@@ -46,7 +46,10 @@ def preprocess_data(inputs: np.array) -> np.array:
     return inputs
 
 
-def build_model(input_shape: int, num_labels: int) -> tf.keras.Model:
+def build_model(
+    input_shape: tuple[int, int, int],
+    num_labels: int
+) -> tf.keras.Model:
     """Builds a 2D convolutional neural network model composed of three
     convolutional blocks followed by a fully connected block.
 
@@ -115,7 +118,7 @@ def evaluate_model(
 
 def main() -> None:
     """Builds, trains, and evaluates a 2D convolutional neural network
-    on a dataset for music genre prediction.
+    model on a dataset for music genre prediction.
 
     :return: None
     """
