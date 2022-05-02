@@ -9,6 +9,7 @@ import os
 import argparse
 import pandas as pd
 
+
 def get_track_list(audio_directory_name, track_csv_path, output_filepath):
     """
     Creates a csv file of track information including the track id,
@@ -36,7 +37,10 @@ def get_track_list(audio_directory_name, track_csv_path, output_filepath):
     tracks_df = pd.DataFrame(track_dict)
 
     # convert tracks.csv to dataframe
-    meta_df = pd.read_csv('/Users/sydney/audio/tracks.csv', header=1, low_memory=False)
+    meta_df = pd.read_csv(
+        '/Users/sydney/audio/tracks.csv',
+        header=1,
+        low_memory=False)
     meta_df.columns.values[0] = 'track_id'
     meta_df = meta_df.iloc[1:]
     meta_df = meta_df[['track_id', 'genre_top']]
@@ -55,7 +59,8 @@ def get_track_list(audio_directory_name, track_csv_path, output_filepath):
 
 if __name__ == '__main__':
     # command line argument parsing
-    parser = argparse.ArgumentParser(description='Combine track, genre, and filepath to csv file')
+    parser = argparse.ArgumentParser(
+        description='Combine track, genre, and filepath to csv file')
     parser.add_argument('audio_file_dir', type=str,
                         help='path directory containing .wav audio files')
     parser.add_argument('tracks_csv_file', type=str,
