@@ -29,7 +29,8 @@ def get_track_list(audio_directory_name, track_csv_path, output_filepath):
     for (dir_path, dir_names, filenames) in os.walk(audio_directory_name):
         for filename in filenames:
             if filename.endswith('.wav'):
-                track_dict['track_id'].append(int(os.path.splitext(filename)[0]))
+                track_dict['track_id'].append(
+                    int(os.path.splitext(filename)[0]))
                 track_dict['track'].append(filename)
                 track_dict['path'].append(os.sep.join([dir_path, filename]))
 
