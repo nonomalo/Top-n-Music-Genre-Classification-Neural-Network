@@ -46,8 +46,15 @@ def process_track(file_path, sample_info):
     expected_signal_length = sample_info['sample_rate'] * \
         sample_info['track_duration']
 
-    # load audio file as floating point time series
-    signal, sr = librosa.load(file_path, sr=sample_info['sample_rate'])
+    try:
+
+        # load audio file as floating point time series
+        signal, sr = librosa.load(file_path, sr=sample_info['sample_rate'])
+
+    except FileNotFoundError:
+
+        print('File Not Found: {}'.format(file_path))
+        return None
 
     # restrict signal length to maintain consistent shape along ndarrays
     if signal.shape[0] > expected_signal_length:
@@ -94,43 +101,52 @@ def process_track_list(dataset_path, audio_files_dir_path, json_path):
          sample_info['track_duration']) /
         sample_info['hop_length'])
 
+    print('Reading csv file to dataframe...')
+
     # create df from csv file and shuffle the data
     df = pd.read_csv(dataset_path)
     df = shuffle(df).reset_index(drop=True)
 
     # create genre array that maps to the track index
-    top_genres_array = df['top_genre_id'].to_numpy()
-    genre_labels = [genre_num_dict[genre_id] for genre_id in top_genres_array]
+    top_genres_array = df['genre_top'].to_numpy()
+    genre_labels = [genre_dict[genre_id] for genre_id in top_genres_array]
 
     count = 0
 
     # isolate indexed file list from dataframe
-    file_list_array = df['filepath'].to_numpy()
+    file_list_array = df['path'].to_numpy()
 
-    # # for TESTING
-    # for index in range(0, 5):
-    #     file = file_list_array[index]
+    print('Processing audio files...')
+
+    # for TESTING  # noqa
+    # for index in range(0, 5): # noqa
+    #     file = file_list_array[index] # noqa
 
     # loop through files in the dataframe
     for index, file in enumerate(file_list_array):
 
-        # combine directory path with file path
-        file = audio_files_dir_path + file
-
         # save mfccs and corresponding genre labels
         mfccs = process_track(file, sample_info)
-        if mfccs.shape != (
-                sample_info['n_mfcc'],
-                sample_info['expected_mfcc_length']):
-            print('mfcc shape error: {}'.format(mfccs.shape))
 
-        data['mfcc'].append(mfccs.tolist())
-        data['labels'].append(genre_labels[index])
+        if mfccs is not None:
 
-        # display count as we process
-        count += 1
-        if count % 20 == 0:
-            print("files processed: {}".format(count))
+            # ensure the mfcc shape is consistent before saving
+            if mfccs.shape != (
+                    sample_info['n_mfcc'],
+                    sample_info['expected_mfcc_length']):
+                print('mfcc shape error: {}'.format(mfccs.shape))
+
+            else:
+
+                data['mfcc'].append(mfccs.tolist())
+                data['labels'].append(genre_labels[index])
+
+                # display count of processed files
+                count += 1
+                if count % 20 == 0:
+                    print("files processed: {}".format(count))
+
+    print('Total files processed: {}'.format(count))
 
     # save to json file
     with open(json_path, 'w') as jp:
@@ -152,9 +168,11 @@ if __name__ == "__main__":
                         help='path to store resulting .json file')
     args = parser.parse_args()
 
+    # CURRENTLY CONFIGURED TO PROCESS A SMALL SAMPLE FOR TESTING
     # create a dataframe with 100 samples of each category
     df = pd.read_csv(args.csv_file_path)
-    sample_df = df.groupby('top_genre_id').sample(n=100)
+    df2 = df.groupby(['genre_top'])['genre_top'].count()
+    sample_df = df.groupby('genre_top').sample(n=100)
     sample_df.reset_index(drop=True, inplace=True)
 
     # save dataframe to csv file
