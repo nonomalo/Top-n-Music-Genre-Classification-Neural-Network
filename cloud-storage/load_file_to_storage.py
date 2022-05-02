@@ -34,9 +34,16 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Upload file to Google Cloud Storage')
-    parser.add_argument('path_to_local', type=str, help='Local filepath to upload')
-    parser.add_argument('bucket_path', type=str, help='Storage path: <bucket-dir/filename>')
+    parser = argparse.ArgumentParser(
+        description='Upload file to Google Cloud Storage')
+    parser.add_argument(
+        'path_to_local',
+        type=str,
+        help='Local filepath to upload')
+    parser.add_argument(
+        'bucket_path',
+        type=str,
+        help='Storage path: <bucket-dir/filename>')
     args = parser.parse_args()
 
     print(upload_blob(BUCKET_NAME, args.path_to_local, args.bucket_path))
