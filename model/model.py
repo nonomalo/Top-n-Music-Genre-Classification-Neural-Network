@@ -1,10 +1,13 @@
 """Builds, trains, and evaluates a 2D convolutional neural network
 model on a dataset for music genre prediction.
 
-Path to JSON file containing dataset must be provided.
+CL: python3 model.py <json-filepath>
 """
 
 import json
+import os
+import sys
+from typing import Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,14 +15,13 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras import layers, models
 
-DATASET_PATH = ""
 SAMPLES = 0
 TIME = 1
 MFCCS = 2
 CHANNELS = 3
 
 
-def load_data(path: str) -> tuple[np.array, np.array, np.array]:
+def load_data(path: str) -> Tuple[np.array, np.array, np.array]:
     """Loads JSON file associated with dataset.
 
     :param path: absolute file path
@@ -47,7 +49,7 @@ def preprocess_data(inputs: np.array) -> np.array:
 
 
 def build_model(
-    input_shape: tuple[int, int, int],
+    input_shape: Tuple[int, int, int],
     num_labels: int
 ) -> tf.keras.Model:
     """Builds a 2D convolutional neural network model composed of three
@@ -122,7 +124,14 @@ def main() -> None:
 
     :return: None
     """
-    mapping, inputs, labels = load_data(DATASET_PATH)
+    if len(sys.argv) != 2:
+        sys.exit(f"Usage: python3 {sys.argv[0]} <json-filepath>")
+
+    if not os.path.exists(sys.argv[1]):
+        sys.exit(f"{sys.argv[1]} is not a valid file path")
+
+    dataset_path = sys.argv[1]
+    mapping, inputs, labels = load_data(dataset_path)
     inputs = preprocess_data(inputs)
 
     # Representative of a single input
