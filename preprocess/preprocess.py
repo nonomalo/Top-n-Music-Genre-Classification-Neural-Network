@@ -43,7 +43,8 @@ def process_track(file_path, sample_info):
     :return: list of sequential mfccs for the audio file
     """
 
-    expected_signal_length = sample_info['sample_rate'] * sample_info['track_duration']
+    expected_signal_length = sample_info['sample_rate'] * \
+        sample_info['track_duration']
 
     # load audio file as floating point time series
     signal, sr = librosa.load(file_path, sr=sample_info['sample_rate'])
@@ -53,11 +54,16 @@ def process_track(file_path, sample_info):
         signal = signal[:expected_signal_length]
 
     # apply short-term Fourier transform
-    stft = np.abs(librosa.stft(signal, n_fft=sample_info['n_fft'], hop_length=sample_info['hop_length']))
+    stft = np.abs(
+        librosa.stft(
+            signal,
+            n_fft=sample_info['n_fft'],
+            hop_length=sample_info['hop_length']))
 
     # convert stft to spectrogram on mel-scale
     mel_spectrogram = librosa.feature.melspectrogram(S=stft ** 2, sr=sr)
-    db = librosa.power_to_db(mel_spectrogram)  # apply discrete cosine transform
+    # apply discrete cosine transform
+    db = librosa.power_to_db(mel_spectrogram)
 
     # generate mfcc for audio track (mel-frequency cepstral coefficients)
     mfcc = librosa.feature.mfcc(S=db, n_mfcc=sample_info['n_mfcc'])
@@ -83,8 +89,10 @@ def process_track_list(dataset_path, audio_files_dir_path, json_path):
                    'n_fft': 2048,
                    'hop_length': 1024}
 
-    sample_info['expected_mfcc_length'] = \
-        math.ceil((sample_info['sample_rate'] * sample_info['track_duration']) / sample_info['hop_length'])
+    sample_info['expected_mfcc_length'] = math.ceil(
+        (sample_info['sample_rate'] *
+         sample_info['track_duration']) /
+        sample_info['hop_length'])
 
     # create df from csv file and shuffle the data
     df = pd.read_csv(dataset_path)
@@ -111,7 +119,9 @@ def process_track_list(dataset_path, audio_files_dir_path, json_path):
 
         # save mfccs and corresponding genre labels
         mfccs = process_track(file, sample_info)
-        if mfccs.shape != (sample_info['n_mfcc'], sample_info['expected_mfcc_length']):
+        if mfccs.shape != (
+                sample_info['n_mfcc'],
+                sample_info['expected_mfcc_length']):
             print('mfcc shape error: {}'.format(mfccs.shape))
 
         data['mfcc'].append(mfccs.tolist())
@@ -130,9 +140,12 @@ def process_track_list(dataset_path, audio_files_dir_path, json_path):
 if __name__ == "__main__":
 
     # command line argument parsing
-    parser = argparse.ArgumentParser(description='Preprocess audio files to mfccs')
-    parser.add_argument('csv_file_path', type=str,
-                        help='csv file with audio track filepaths and track genres')
+    parser = argparse.ArgumentParser(
+        description='Preprocess audio files to mfccs')
+    parser.add_argument(
+        'csv_file_path',
+        type=str,
+        help='csv file with audio track filepaths and track genres')
     parser.add_argument('audio_root_directory', type=str,
                         help='root directory of audio track files')
     parser.add_argument('json_file_path', type=str,
@@ -147,4 +160,7 @@ if __name__ == "__main__":
     # save dataframe to csv file
     sample_df.to_csv("csv/small_sample.csv")
 
-    process_track_list("csv/small_sample.csv", args.audio_root_directory, args.json_file_path)
+    process_track_list(
+        "csv/small_sample.csv",
+        args.audio_root_directory,
+        args.json_file_path)
