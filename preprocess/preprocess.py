@@ -159,11 +159,11 @@ if __name__ == "__main__":
     # command line argument parsing
     parser = argparse.ArgumentParser(
         description='Preprocess audio files to mfccs')
+    parser.add_argument('--tiny', '-t', action='store_true')
     parser.add_argument(
         'csv_file_path',
         type=str,
         help='csv file with audio track filepaths and track genres')
-    parser.add_argument('--tiny', '-t', action='store_true')
     parser.add_argument('audio_root_directory', type=str,
                         help='root directory of audio track files')
     parser.add_argument('json_file_path', type=str,
@@ -174,9 +174,7 @@ if __name__ == "__main__":
     # create a dataframe with 100 samples of each category
     df = pd.read_csv(args.csv_file_path)
     df2 = df.groupby(['genre_top'])['genre_top'].count()
-    n = 100
-    if args.tiny:
-        n = 2
+    n = 100 if not args.tiny else 2
     sample_df = df.groupby('genre_top').sample(n=n)
     sample_df.reset_index(drop=True, inplace=True)
 

@@ -10,7 +10,7 @@ import argparse
 import pandas as pd
 
 
-def get_track_list(audio_directory_name, track_csv_path, output_filepath):
+def get_track_list(audio_directory_name, track_csv_path, output_filepath, tiny=False):
     """
     Creates a csv file of track information including the track id,
     track filepath, and genre for each track nested in a particular directory
@@ -38,12 +38,14 @@ def get_track_list(audio_directory_name, track_csv_path, output_filepath):
     tracks_df = pd.DataFrame(track_dict)
 
     # convert tracks.csv to dataframe
+    header = 1 if not tiny else 0
     meta_df = pd.read_csv(
-        '/Users/sydney/audio/tracks.csv',
+        track_csv_path,
         header=1,
         low_memory=False)
-    meta_df.columns.values[0] = 'track_id'
-    meta_df = meta_df.iloc[1:]
+    if not tiny:
+        meta_df.columns.values[0] = 'track_id'
+        meta_df = meta_df.iloc[1:]
     meta_df = meta_df[['track_id', 'genre_top']]
     meta_df = meta_df.astype({'track_id': int})
 
@@ -63,6 +65,7 @@ if __name__ == '__main__':
     # command line argument parsing
     parser = argparse.ArgumentParser(
         description='Combine track, genre, and filepath to csv file')
+    parser.add_argument('--tiny', '-t', action='store_true')
     parser.add_argument('audio_file_dir', type=str,
                         help='path directory containing .wav audio files')
     parser.add_argument('tracks_csv_file', type=str,
@@ -71,4 +74,4 @@ if __name__ == '__main__':
                         help='path to store resulting .csv file')
     args = parser.parse_args()
 
-    get_track_list(args.audio_file_dir, args.tracks_csv_file, args.output_csv)
+    get_track_list(args.audio_file_dir, args.tracks_csv_file, args.output_csv, args.tiny)
