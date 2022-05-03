@@ -10,7 +10,11 @@ import argparse
 import pandas as pd
 
 
-def get_track_list(audio_directory_name, track_csv_path, output_filepath, tiny=False):
+def get_track_list(
+        audio_directory_name,
+        track_csv_path,
+        output_filepath,
+        tiny=False):
     """
     Creates a csv file of track information including the track id,
     track filepath, and genre for each track nested in a particular directory
@@ -74,4 +78,8 @@ if __name__ == '__main__':
                         help='path to store resulting .csv file')
     args = parser.parse_args()
 
-    get_track_list(args.audio_file_dir, args.tracks_csv_file, args.output_csv, args.tiny)
+    get_track_list(
+        args.audio_file_dir,
+        args.tracks_csv_file,
+        args.output_csv,
+        args.tiny)
