@@ -41,7 +41,7 @@ def get_track_list(audio_directory_name, track_csv_path, output_filepath, tiny=F
     header = 1 if not tiny else 0
     meta_df = pd.read_csv(
         track_csv_path,
-        header=1,
+        header=header,
         low_memory=False)
     if not tiny:
         meta_df.columns.values[0] = 'track_id'
