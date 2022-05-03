@@ -29,7 +29,8 @@ def get_track_list(audio_directory_name, track_csv_path, output_filepath):
     for (dir_path, dir_names, filenames) in os.walk(audio_directory_name):
         for filename in filenames:
             if filename.endswith('.wav'):
-                track_dict['track_id'].append(os.path.splitext(filename)[0])
+                track_dict['track_id'].append(
+                    int(os.path.splitext(filename)[0]))
                 track_dict['track'].append(filename)
                 track_dict['path'].append(os.sep.join([dir_path, filename]))
 
@@ -44,6 +45,7 @@ def get_track_list(audio_directory_name, track_csv_path, output_filepath):
     meta_df.columns.values[0] = 'track_id'
     meta_df = meta_df.iloc[1:]
     meta_df = meta_df[['track_id', 'genre_top']]
+    meta_df = meta_df.astype({'track_id': int})
 
     # join tracks_df to meta_df on the track_id column
     df = pd.merge(
