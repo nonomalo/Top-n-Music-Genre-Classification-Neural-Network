@@ -1,55 +1,81 @@
 """Builds, trains, and evaluates a 2D convolutional neural network
 model on a dataset for music genre prediction.
 
-CL: python3 model.py <json-filepath>
+CL: python3 model.py json-filepath ...
 """
 
 import json
-import os
 import sys
-from typing import Tuple
+from typing import Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
-from tensorflow.keras import layers, models
 
 SAMPLES = 0
 TIME = 1
-MFCCS = 2
+FEATURES = 2
 CHANNELS = 3
 
 
-def load_data(path: str) -> Tuple[np.array, np.array, np.array]:
-    """Loads JSON file associated with dataset.
+def load_data(paths: Sequence[str]) -> Tuple[np.array, np.array, np.array]:
+    """Loads JSON files associated with dataset. JSON files must be structured
+    identically.
 
-    :param path: absolute file path
-    :return: arrays associated with mapping, MFCCs, and labels, respectively
+    :param paths: array with file paths
+    :return: arrays associated with mappings, features, and labels, respectively
     """
-    with open(path, 'r') as file:
-        data = json.load(file)
+    mappings = []
+    inputs = []
+    labels = []
 
-    mapping = np.array(data['mapping'])
-    inputs = np.array(data['mfcc'])
-    labels = np.array(data['labels'])
-    return mapping, inputs, labels
+    try:
+        for i, path in enumerate(paths):
+            with open(path, "r") as file:
+                data = json.load(file)
+
+            # Identical mappings between files expected
+            if i == 0:
+                mappings.extend(data["mapping"])
+    
+            inputs.extend(data["mfcc"])
+            labels.extend(data["labels"])
+    except FileNotFoundError:
+        sys.exit(f"'{path}' is an invalid file path")
+    except IndexError:
+        sys.exit(f"'{path}' has an incompatible JSON structure")
+    
+    mappings = np.array(mappings)
+    inputs = np.array(inputs)
+    labels = np.array(labels)
+    return mappings, inputs, labels
 
 
-def preprocess_data(inputs: np.array) -> np.array:
-    """Swaps dimensions representing MFCCs and time while maintaining samples
-    dimension and adds an innermost dimension representing channels.
+def preprocess_data(inputs: Sequence[int]) -> np.array:
+    """Normalizes features data and rearranges input by swapping order
+    of features and time dimensions and adding an innermost dimension
+    representing channels.
 
-    :param inputs: data of the shape (samples, MFCCs, time)
-    :return: data of the shape (samples, time, MFCCs, channels)
+    :param inputs: data of the shape (samples, features, time)
+    :return: data of the shape (samples, time, features, channels)
     """
-    inputs = np.transpose(inputs, (SAMPLES, MFCCS, TIME))
+    scalar = StandardScaler()
+    num_samples, num_features, time_steps = inputs.shape
+
+    # Normalization
+    inputs = np.reshape(inputs, newshape=(-1, num_features))
+    inputs = scalar.fit_transform(inputs)
+
+    # Rearrangement
+    inputs = np.reshape(inputs, newshape=(num_samples, time_steps, num_features))
     inputs = np.expand_dims(inputs, CHANNELS)
     return inputs
 
 
 def build_model(
-    input_shape: Tuple[int, int, int],
+    input_shape: Sequence[int],
     num_labels: int
 ) -> tf.keras.Model:
     """Builds a 2D convolutional neural network model composed of three
@@ -59,29 +85,31 @@ def build_model(
     :param num_labels: number of all possible output categories
     :return: model with layers added
     """
-    model = models.Sequential()
+    model = tf.keras.models.Sequential()
 
     # Convolutional block 1
-    model.add(layers.Input(input_shape))
-    model.add(layers.Conv2D(32, 3, activation='relu'))
-    model.add(layers.MaxPool2D(3, strides=2, padding='same'))
-    model.add(layers.BatchNormalization())
+    model.add(tf.keras.layers.Input(input_shape))
+    model.add(tf.keras.layers.Conv2D(32, 3, activation="relu"))
+    model.add(tf.keras.layers.MaxPool2D(3, strides=2, padding="same"))
+    model.add(tf.keras.layers.BatchNormalization())
 
     # Convolutional block 2
-    model.add(layers.Conv2D(32, 3, activation='relu'))
-    model.add(layers.MaxPool2D(3, strides=2, padding='same'))
-    model.add(layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(32, 3, activation="relu"))
+    model.add(tf.keras.layers.MaxPool2D(3, strides=2, padding="same"))
+    model.add(tf.keras.layers.BatchNormalization())
 
     # Convolutional block 3
-    model.add(layers.Conv2D(32, 3, activation='relu'))
-    model.add(layers.MaxPool2D(2, padding='same'))
-    model.add(layers.BatchNormalization())
+    model.add(tf.keras.layers.Conv2D(32, 3, activation="relu"))
+    model.add(tf.keras.layers.MaxPool2D(2, strides=2, padding="same"))
+    model.add(tf.keras.layers.BatchNormalization())
 
     # Fully connected block
-    model.add(layers.Flatten())
-    model.add(layers.Dense(32, activation='relu'))
-    model.add(layers.Dropout(0.5))
-    model.add(layers.Dense(num_labels, activation='softmax'))
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(256, activation="relu"))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dense(128, activation="relu"))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dense(num_labels, activation="softmax"))
     return model
 
 
@@ -92,18 +120,18 @@ def display_training_metrics(history: tf.keras.callbacks.History) -> None:
     :return: None
     """
     metrics = history.history
-    plt.plot(history.epoch, metrics['loss'], metrics['val_loss'])
+    plt.plot(history.epoch, metrics["loss"], metrics["val_loss"])
     plt.title("Training Loss Metrics")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.legend(['Loss', 'Validation loss'])
+    plt.legend(["Loss", "Validation loss"])
     plt.show()
 
 
 def evaluate_model(
     model: tf.keras.Model,
-    inputs: np.array,
-    labels: np.array
+    inputs: Sequence[int],
+    labels: Sequence[int]
 ) -> None:
     """Uses trained model to make predictions on test data.
 
@@ -124,26 +152,21 @@ def main() -> None:
 
     :return: None
     """
-    if len(sys.argv) != 2:
-        sys.exit(f"Usage: python3 {sys.argv[0]} <json-filepath>")
+    dataset_paths = []
 
-    if not os.path.exists(sys.argv[1]):
-        sys.exit(f"{sys.argv[1]} is not a valid file path")
+    try:
+        for arg in sys.argv[1:]:
+            dataset_paths.append(arg)
+    except IndexError:
+        sys.exit(f"Usage: python3 {sys.argv[0]} json-filepath ...")
 
-    dataset_path = sys.argv[1]
-    mapping, inputs, labels = load_data(dataset_path)
+    mappings, inputs, labels = load_data(dataset_paths)
     inputs = preprocess_data(inputs)
-
-    # Representative of a single input
-    audio_shape = (inputs.shape[TIME],
-                   inputs.shape[MFCCS],
-                   inputs.shape[CHANNELS]
-                   )
-
+    
     train_inputs, remaining_inputs, \
         train_labels, remaining_labels = train_test_split(inputs,
                                                           labels,
-                                                          train_size=0.8
+                                                          train_size=0.9
                                                           )
     validate_inputs, test_inputs, \
         validate_labels, test_labels = train_test_split(remaining_inputs,
@@ -151,15 +174,18 @@ def main() -> None:
                                                         test_size=0.5
                                                         )
 
-    model = build_model(audio_shape, len(mapping))
+    input_shape = (inputs.shape[TIME], inputs.shape[FEATURES], inputs.shape[CHANNELS])
+    model = build_model(input_shape, len(mappings))
+
     model.summary()
-    model.compile(optimizer=tf.keras.optimizers.Adam(),
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0002),
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-                  metrics=['accuracy']
+                  metrics=["accuracy"],
                   )
-    # Training
-    history = model.fit(train_inputs, train_labels, batch_size=32, epochs=15,
-                        validation_data=(validate_inputs, validate_labels)
+
+    history = model.fit(train_inputs, train_labels, batch_size=32, epochs=35,
+                        validation_data=(validate_inputs, validate_labels),
+                        callbacks=tf.keras.callbacks.EarlyStopping(verbose=1, patience=3)
                         )
     display_training_metrics(history)
     evaluate_model(model, test_inputs, test_labels)
