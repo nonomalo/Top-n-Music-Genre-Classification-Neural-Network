@@ -17,10 +17,10 @@ genre_dict = {
     'Hip-Hop': 13, 'Experimental': 14, 'Instrumental': 15
 }
 mapping = ['International', 'Blues', 'Jazz', 'Classical',
-                    'Old-Time / Historic', 'Country', 'Pop', 'Rock',
-                    'Easy Listening', 'Soul-RnB', 'Electronic',
-                    'Folk', 'Spoken', 'Hip-Hop', 'Experimental',
-                    'Instrumental']
+            'Old-Time / Historic', 'Country', 'Pop', 'Rock',
+            'Easy Listening', 'Soul-RnB', 'Electronic',
+            'Folk', 'Spoken', 'Hip-Hop', 'Experimental',
+            'Instrumental']
 
 # SMALL DATASET
 # genre_dict = {
