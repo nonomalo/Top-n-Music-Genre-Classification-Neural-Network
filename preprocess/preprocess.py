@@ -1,10 +1,3 @@
-"""
-Preprocess audio files into mfccs from command line
-and store as .json file
-
-CL: python3 preprocess.py <csv-data-filepath> <audio-root-directory-path> <json-filepath>
-"""
-
 import argparse
 import pandas as pd
 import numpy as np
@@ -14,14 +7,7 @@ from sklearn.utils import shuffle
 import math
 import os
 
-
-genre_num_dict = {
-    2: 0, 3: 1, 4: 2, 5: 3, 8: 4,
-    9: 5, 10: 6, 12: 7, 13: 8,
-    14: 9, 15: 10, 17: 11, 20: 12,
-    21: 13, 38: 14, 1235: 15
-}
-
+# # MEDIUM DATASET
 genre_dict = {
     'International': 0, 'Blues': 1, 'Jazz': 2,
     'Classical': 3, 'Old-Time / Historic': 4,
@@ -30,17 +16,80 @@ genre_dict = {
     'Electronic': 10, 'Folk': 11, 'Spoken': 12,
     'Hip-Hop': 13, 'Experimental': 14, 'Instrumental': 15
 }
+mapping = ['International', 'Blues', 'Jazz', 'Classical',
+                    'Old-Time / Historic', 'Country', 'Pop', 'Rock',
+                    'Easy Listening', 'Soul-RnB', 'Electronic',
+                    'Folk', 'Spoken', 'Hip-Hop', 'Experimental',
+                    'Instrumental']
+
+# SMALL DATASET
+# genre_dict = {
+#     'Electronic': 0, 'Experimental': 1, 'Folk': 2,
+#     'Hip-Hop': 3, 'Instrumental': 4,
+#     'International': 5, 'Pop': 6, 'Rock': 7
+# }
+# mapping = ['Electronic', 'Experimental', 'Folk',
+#     'Hip-Hop', 'Instrumental',
+#     'International', 'Pop', 'Rock']
+
+
+def main():
+    """
+    Preprocess audio files into mfccs from command line
+    and store as .json file
+
+    CL: python3 preprocess.py <csv-data-filepath> <json-filepath>
+
+    Flags: -t to pre-process "tiny" file,
+           -s <int> to pre-process sample size of <int> from each genre
+           Example:
+               python3 preprocess.py -s 50 <csv-data-filepath> <json-filepath>
+               will process 50 audio files from each genre
+    """
+
+    # parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Preprocess audio files to mfccs')
+    parser.add_argument('--tiny', '-t', action='store_true')
+    parser.add_argument('--sample', '-s', type=int)
+    parser.add_argument(
+        'csv_file_path',
+        type=str,
+        help='csv file with audio track filepaths and track genres')
+    parser.add_argument('json_file_path', type=str,
+                        help='path to store resulting .json file')
+    args = parser.parse_args()
+
+    csv_file_path = args.csv_file_path
+
+    # for tiny and sample, create a smaller dataset
+    # and save to a local file
+    if args.sample is not None or args.tiny:
+
+        # create the smaller sample from the larger dataset
+        df = pd.read_csv(args.csv_file_path)
+        n = args.sample if args.sample is not None else 2
+        sample_df = df.groupby('genre_top').sample(n=n)
+        sample_df.reset_index(drop=True, inplace=True)
+
+        # save dataframe to csv file
+        if not os.path.exists("csv"):
+            os.mkdir("csv")
+        sample_df.to_csv("csv/small_sample.csv")
+        csv_file_path = "csv/small_sample.csv"
+
+    process_track_list(
+        csv_file_path,
+        args.json_file_path)
 
 
 def process_track(file_path, sample_info):
     """
-    Splits an audio file into segments and creates an mfcc sequence for
-    each segment.
+    Creates an mfcc sequence for each audio file.
     :param file_path: file path to audio track (string)
     :param sample_info: dictionary of config settings for the processing,
-    including: 'sample_rate', 'number_of_segments', 'samples_per_segment',
-    'samples_per_track', 'n_mfcc', 'n_fft', and 'hop_length'
-    :param genre_index: genre index for track
+    including: 'sample_rate', 'n_mfcc', 'n_fft', 'hop_length',
+    and expected_mfcc_length
     :return: list of sequential mfccs for the audio file
     """
 
@@ -54,7 +103,7 @@ def process_track(file_path, sample_info):
 
     except FileNotFoundError:
 
-        print('File Not Found: {}'.format(file_path))
+        print(f'File Not Found: {file_path}')
         return None
 
     # restrict signal length to maintain consistent shape along ndarrays
@@ -79,13 +128,16 @@ def process_track(file_path, sample_info):
     return mfcc
 
 
-def process_track_list(dataset_path, audio_files_dir_path, json_path):
+def process_track_list(dataset_path, json_path):
+    """
+    Stores the mfcc data for each track in the dataset
+    :param dataset_path: csv file from create_dataset_track_list.py
+    :param json_path: path to json output file
+    """
 
     # dictionary to store data
     data = {
-        "mapping": ['International', 'Blues', 'Jazz', 'Classical', 'Old-Time / Historic',
-                    'Country', 'Pop', 'Rock', 'Easy Listening', 'Soul-RnB', 'Electronic',
-                    'Folk', 'Spoken', 'Hip-Hop', 'Experimental', 'Instrumental'],
+        "mapping": mapping,
         "mfcc": [],  # mfcc data arrays
         "labels": []  # segment labels by "mapping" index
     }
@@ -135,7 +187,7 @@ def process_track_list(dataset_path, audio_files_dir_path, json_path):
             if mfccs.shape != (
                     sample_info['n_mfcc'],
                     sample_info['expected_mfcc_length']):
-                print('mfcc shape error: {}'.format(mfccs.shape))
+                print(f'mfcc shape error: {mfccs.shape}')
 
             else:
 
@@ -145,45 +197,23 @@ def process_track_list(dataset_path, audio_files_dir_path, json_path):
                 # display count of processed files
                 count += 1
                 if count % 20 == 0:
-                    print("files processed: {}".format(count))
+                    print(f'files processed: {count}')
 
-    print('Total files processed: {}'.format(count))
+    print(f'Total files processed: {count}')
+
+    print('Saving file to json...')
 
     # save to json file
     with open(json_path, 'w') as jp:
         json.dump(data, jp, indent=4)
 
+    with open(json_path) as json_file:
+        data = json.load(json_file)
+
+    # print shape of saved mfccs
+    mfcc_array = np.array([np.array(n) for n in data['mfcc']])
+    print(f'MFCCs shape: {mfcc_array.shape}')
+
 
 if __name__ == "__main__":
-
-    # command line argument parsing
-    parser = argparse.ArgumentParser(
-        description='Preprocess audio files to mfccs')
-    parser.add_argument('--tiny', '-t', action='store_true')
-    parser.add_argument(
-        'csv_file_path',
-        type=str,
-        help='csv file with audio track filepaths and track genres')
-    parser.add_argument('audio_root_directory', type=str,
-                        help='root directory of audio track files')
-    parser.add_argument('json_file_path', type=str,
-                        help='path to store resulting .json file')
-    args = parser.parse_args()
-
-    # CURRENTLY CONFIGURED TO PROCESS A SMALL SAMPLE FOR TESTING
-    # create a dataframe with 100 samples of each category
-    df = pd.read_csv(args.csv_file_path)
-    df2 = df.groupby(['genre_top'])['genre_top'].count()
-    n = 100 if not args.tiny else 2
-    sample_df = df.groupby('genre_top').sample(n=n)
-    sample_df.reset_index(drop=True, inplace=True)
-
-    # save dataframe to csv file
-    if not os.path.exists("csv"):
-        os.mkdir("csv")
-    sample_df.to_csv("csv/small_sample.csv")
-
-    process_track_list(
-        "csv/small_sample.csv",
-        args.audio_root_directory,
-        args.json_file_path)
+    main()

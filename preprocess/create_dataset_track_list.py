@@ -1,13 +1,44 @@
-"""
-Combine fma_ dataset track indexes with corresponding
-genre and filepath to a csv file
-
-To Run:
-python3 create_dataset_track_list.py <dir-of-wav-files> <tracks.csv-path> <output-filepath>
-"""
 import os
 import argparse
 import pandas as pd
+
+
+def main():
+    """
+    Combines fma_ dataset track indices with corresponding genre
+    and filepath into a csv file
+
+    To Run:
+    Takes 3 arguments from command line in the following order:
+        1. directory-of-wav-files
+        2. tracks.csv-filepath
+        3. output-filepath
+        Example: python3 create_dataset_track_list.py \
+            <dir-of-wav-files> <tracks.csv-path> <output-filepath>
+
+    To Run the "tiny" dataset:
+        * include the -t flag as a command line argument
+        Example: python3 create_dataset_track_list.py -t \
+            <dir-tiny-wav-files> <tiny_tracks.csv-path> <output-filepath>
+    """
+
+    # parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='Combine track, genre, and filepath to csv file')
+    parser.add_argument('--tiny', '-t', action='store_true')
+    parser.add_argument('audio_file_dir', type=str,
+                        help='path directory containing .wav audio files')
+    parser.add_argument('tracks_csv_file', type=str,
+                        help='path to fma_metadata tracks.csv file')
+    parser.add_argument('output_csv', type=str,
+                        help='path to store resulting .csv file')
+    args = parser.parse_args()
+
+    get_track_list(
+        args.audio_file_dir,
+        args.tracks_csv_file,
+        args.output_csv,
+        args.tiny)
 
 
 def get_track_list(
@@ -66,20 +97,4 @@ def get_track_list(
 
 
 if __name__ == '__main__':
-    # command line argument parsing
-    parser = argparse.ArgumentParser(
-        description='Combine track, genre, and filepath to csv file')
-    parser.add_argument('--tiny', '-t', action='store_true')
-    parser.add_argument('audio_file_dir', type=str,
-                        help='path directory containing .wav audio files')
-    parser.add_argument('tracks_csv_file', type=str,
-                        help='path to fma_metadata tracks.csv file')
-    parser.add_argument('output_csv', type=str,
-                        help='path to store resulting .csv file')
-    args = parser.parse_args()
-
-    get_track_list(
-        args.audio_file_dir,
-        args.tracks_csv_file,
-        args.output_csv,
-        args.tiny)
+    main()
