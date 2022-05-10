@@ -1,7 +1,7 @@
 """Builds, trains, and evaluates a 2D convolutional neural network
 model on a dataset for music genre prediction.
 
-Usage: python3 model.py json-filepath ...
+Usage: python3 model.py json-filepath [json-filepath ...]
 """
 
 import json
@@ -23,9 +23,10 @@ MAPPING_DATA = "mapping"
 FEATURE_DATA = "mfcc"
 LABEL_DATA = "labels"
 
-# Training parameters
+# Tunable parameters
 BATCH_SIZE = 32
 EPOCHS = 35
+LEARNING_RATE = 0.0002
 
 
 def load_data(paths: Sequence[str]) -> tf.data.Dataset:
@@ -164,10 +165,10 @@ def build_model(
     # Fully connected block
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(256, activation="relu"))
-    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dropout(0.3))
     model.add(tf.keras.layers.Dense(128, activation="relu"))
     model.add(tf.keras.layers.Dropout(0.5))
-    model.add(tf.keras.layers.Dense(num_labels, activation="softmax"))
+    model.add(tf.keras.layers.Dense(num_labels))
 
     return model
 
@@ -211,8 +212,8 @@ def evaluate_model(
 
     for _ in range(10):
         i = random.randrange(len(inputs) - 1)
-        prediction = model(np.expand_dims(inputs[i], SAMPLES),
-                           training=False)
+        input = np.expand_dims(inputs[i], SAMPLES)
+        prediction = model(input, training=False)
 
         plt.bar(mappings, tf.nn.softmax(prediction[0]))
         plt.title(f"Predictions for '{mappings[labels[i]]}'")
@@ -246,22 +247,20 @@ def main() -> None:
 
     :return: None
     """
-    try:
-        dataset = load_data(sys.argv[1:])
-        mappings = load_mappings(sys.argv[1])
-    except IndexError:
-        sys.exit(f"Usage: python3 {sys.argv[0]} json-filepath ...")
+    dataset = load_data(sys.argv[1:])
+    mappings = load_mappings(sys.argv[1])
 
     input_shape = get_element_shape(dataset)
     model = build_model(input_shape, len(mappings))
 
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-                  metrics=["accuracy"]
-                  )
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=["accuracy"]
+        )
     model.summary()
 
-    train_dataset, remainder_dataset = split_dataset(dataset, 0.2)
+    train_dataset, remainder_dataset = split_dataset(dataset, 0.1)
     validation_dataset, test_dataset = split_dataset(remainder_dataset, 0.5)
 
     train_dataset = train_dataset.batch(BATCH_SIZE)
