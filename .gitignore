@@ -1,0 +1,10 @@
+.env
+/venv
+.idea/
+.DS_Store
+/preprocess/csv
+check.py
+model/data.json
+preprocess/json_data.json
+csv/
+preprocess/audio
