@@ -257,7 +257,7 @@ def main() -> None:
         optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"]
-        )
+    )
     model.summary()
 
     train_dataset, remainder_dataset = split_dataset(dataset, 0.1)
