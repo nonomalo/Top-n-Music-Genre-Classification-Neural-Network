@@ -8,3 +8,5 @@ model/data.json
 preprocess/json_data.json
 csv/
 preprocess/audio
+.vscode/
+__pycache__/
