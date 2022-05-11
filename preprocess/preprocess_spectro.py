@@ -8,29 +8,29 @@ import math
 import os
 
 # # MEDIUM DATASET
-# genre_dict = {
-#     'International': 0, 'Blues': 1, 'Jazz': 2,
-#     'Classical': 3, 'Old-Time / Historic': 4,
-#     'Country': 5, 'Pop': 6, 'Rock': 7,
-#     'Easy Listening': 8, 'Soul-RnB': 9,
-#     'Electronic': 10, 'Folk': 11, 'Spoken': 12,
-#     'Hip-Hop': 13, 'Experimental': 14, 'Instrumental': 15
-# }
-# mapping = ['International', 'Blues', 'Jazz', 'Classical',
-#            'Old-Time / Historic', 'Country', 'Pop', 'Rock',
-#            'Easy Listening', 'Soul-RnB', 'Electronic',
-#            'Folk', 'Spoken', 'Hip-Hop', 'Experimental',
-#            'Instrumental']
+genre_dict = {
+    'International': 0, 'Blues': 1, 'Jazz': 2,
+    'Classical': 3, 'Old-Time / Historic': 4,
+    'Country': 5, 'Pop': 6, 'Rock': 7,
+    'Easy Listening': 8, 'Soul-RnB': 9,
+    'Electronic': 10, 'Folk': 11, 'Spoken': 12,
+    'Hip-Hop': 13, 'Experimental': 14, 'Instrumental': 15
+}
+mapping = ['International', 'Blues', 'Jazz', 'Classical',
+           'Old-Time / Historic', 'Country', 'Pop', 'Rock',
+           'Easy Listening', 'Soul-RnB', 'Electronic',
+           'Folk', 'Spoken', 'Hip-Hop', 'Experimental',
+           'Instrumental']
 
 # SMALL DATASET
-genre_dict = {
-    'Electronic': 0, 'Experimental': 1, 'Folk': 2,
-    'Hip-Hop': 3, 'Instrumental': 4,
-    'International': 5, 'Pop': 6, 'Rock': 7
-}
-mapping = ['Electronic', 'Experimental', 'Folk',
-           'Hip-Hop', 'Instrumental',
-           'International', 'Pop', 'Rock']
+# genre_dict = {
+#     'Electronic': 0, 'Experimental': 1, 'Folk': 2,
+#     'Hip-Hop': 3, 'Instrumental': 4,
+#     'International': 5, 'Pop': 6, 'Rock': 7
+# }
+# mapping = ['Electronic', 'Experimental', 'Folk',
+#            'Hip-Hop', 'Instrumental',
+#            'International', 'Pop', 'Rock']
 
 
 def main():
@@ -119,13 +119,9 @@ def process_track(file_path, sample_info):
 
     # convert stft to spectrogram on mel-scale
     mel_spectrogram = librosa.feature.melspectrogram(S=stft ** 2, sr=sr)
-    # apply discrete cosine transform
-    db = librosa.power_to_db(mel_spectrogram)
 
-    # generate mfcc for audio track (mel-frequency cepstral coefficients)
-    mfcc = librosa.feature.mfcc(S=db, n_mfcc=sample_info['n_mfcc'])
-
-    return mfcc
+    # return mfcc
+    return mel_spectrogram
 
 
 def process_track_list(dataset_path, json_path):
@@ -138,18 +134,17 @@ def process_track_list(dataset_path, json_path):
     # dictionary to store data
     data = {
         "mapping": mapping,
-        "mfcc": [],  # mfcc data arrays
+        "melspec": [],  # mfcc data arrays
         "labels": []  # segment labels by "mapping" index
     }
 
     # object to store config information for processing
     sample_info = {'sample_rate': 22050,
                    'track_duration': 30,
-                   'n_mfcc': 20,
                    'n_fft': 2048,
                    'hop_length': 1024}
 
-    sample_info['expected_mfcc_length'] = math.ceil(
+    sample_info['expected_length'] = math.ceil(
         (sample_info['sample_rate'] *
          sample_info['track_duration']) /
         sample_info['hop_length'])
@@ -179,25 +174,24 @@ def process_track_list(dataset_path, json_path):
     for index, file in enumerate(file_list_array):
 
         # save mfccs and corresponding genre labels
-        mfccs = process_track(file, sample_info)
+        melspec = process_track(file, sample_info)
 
-        if mfccs is not None:
+        if melspec is not None:
 
-            # ensure the mfcc shape is consistent before saving
-            if mfccs.shape != (
-                    sample_info['n_mfcc'],
-                    sample_info['expected_mfcc_length']):
-                print(f'mfcc shape error: {mfccs.shape}')
+            # ensure melspec shape is consistent before saving
+            # (128 default mel-bins, expected_length)
+            if melspec.shape != (128, sample_info['expected_length']):
+                print(f'melspectrogram shape error: {melspec.shape}')
 
             else:
 
-                data['mfcc'].append(mfccs.tolist())
+                data['melspec'].append(melspec.tolist())
                 data['labels'].append(genre_labels[index])
 
-                # display count of processed files
-                count += 1
-                if count % 20 == 0:
-                    print(f'files processed: {count}')
+            # display count of processed files
+            count += 1
+            if count % 20 == 0:
+                print(f'files processed: {count}')
 
     print(f'Total files processed: {count}')
 
@@ -211,8 +205,8 @@ def process_track_list(dataset_path, json_path):
         data = json.load(json_file)
 
     # print shape of saved mfccs
-    mfcc_array = np.array([np.array(n) for n in data['mfcc']])
-    print(f'MFCCs shape: {mfcc_array.shape}')
+    data_array = np.array([np.array(n) for n in data['melspec']])
+    print(f'Data shape: {data_array.shape}')
 
 
 if __name__ == "__main__":
