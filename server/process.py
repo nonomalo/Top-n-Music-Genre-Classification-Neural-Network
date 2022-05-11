@@ -87,6 +87,8 @@ def download_wav_file(url):
 
         with yt_dlp.YoutubeDL(ydl_options) as ydl:
             ydl.download([url])
+            song_info = ydl.extract_info(url, download=True)
+            song_info.get('title', None)
 
     except yt_dlp.utils.DownloadError as e:
         # remove special string formatting:
