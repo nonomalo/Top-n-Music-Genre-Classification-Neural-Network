@@ -1,11 +1,19 @@
-<!-- Home page -->
-
 {% extends 'base.html' %}
 
-<!-- Header -->
-{% block head %}
-{% endblock %}
+ <!-- Header -->
+ {% block head %}
+     <head>
+       <title>File Upload</title>
+     </head>
+ {% endblock %}
 
-<!-- Body -->
-{% block body %}
-{% endblock %}
+ <!-- Body -->
+ {% block body %}
+     <body>
+       <h1>File Upload</h1>
+       <form method="POST" action="" enctype="multipart/form-data">
+         <p><input type="file" name="file"></p>
+         <p><input type="submit" value="Submit"></p>
+       </form>
+     </body>
+ {% endblock %}
