@@ -42,8 +42,8 @@ def load_data(paths: Sequence[str]) -> tf.data.Dataset:
         if i == 0:
             dataset = tf.data.Dataset.from_tensor_slices((inputs, labels))
         else:
-            temp = tf.data.Dataset.from_tensor_slices((inputs, labels))
-            dataset = dataset.concatenate(temp)
+            temp_dataset = tf.data.Dataset.from_tensor_slices((inputs, labels))
+            dataset = dataset.concatenate(temp_dataset)
     return dataset
 
 
@@ -53,12 +53,13 @@ def preprocess_data(inputs: Sequence[int]) -> np.array:
     representing channels.
 
     :param inputs: data of the shape (samples, features, time)
+    :raises ValueError: when provided incompatible input data shape
     :return: data of the shape (samples, time, features, channels)
     """
     scalar = StandardScaler()
 
     if inputs.ndim != 3:
-        raise ValueError("Feature data shape must be three dimensions")
+        raise ValueError("Input data shape must be three dimensions")
     num_samples, num_features, time_steps = inputs.shape
 
     # Normalization

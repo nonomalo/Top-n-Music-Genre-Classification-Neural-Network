@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-from dataset import load_data, SAMPLES, load_mappings
+from dataset import load_data, load_mappings, SAMPLES
 from train import get_inputs_and_labels
 
 
@@ -36,6 +36,17 @@ def get_arguments() -> argparse.Namespace:
 
     args = parser.parse_args()
     return args
+
+
+def verify_arguments(arguments: argparse.Namespace) -> None:
+    """Verifies command line arguments.
+
+    :param arguments: command line arguments object
+    :raises ValueError: when number of results to display is not positive
+    :return: None
+    """
+    if arguments.display and arguments.display < 1:
+        raise ValueError("Number of results to display must be at least one")
 
 
 def evaluate_model(
@@ -69,9 +80,7 @@ def main() -> None:
     :return: None
     """
     args = get_arguments()
-
-    if args.display and args.display < 0:
-        raise ValueError("Number of results to display must be at least zero")
+    verify_arguments(args)
 
     model = tf.keras.models.load_model(args.model)
     dataset = load_data(args.filepath)
