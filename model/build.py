@@ -10,7 +10,7 @@ def build_model(input_shape: Sequence[int], num_labels: int) -> tf.keras.Model:
     convolutional blocks followed by one fully connected block.
 
     :param input_shape: feature data dimensionality
-    :param num_labels: number of all possible output categories
+    :param num_labels: number of all output categories
     :return: model with layers added
     """
     model = tf.keras.models.Sequential()

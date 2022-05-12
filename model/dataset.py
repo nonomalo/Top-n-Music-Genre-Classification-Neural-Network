@@ -27,25 +27,23 @@ def load_data(paths: Sequence[str]) -> tf.data.Dataset:
     :param paths: file paths
     :return: TensorFlow dataset with preprocessed data
     """
-    try:
-        for i, path in enumerate(paths):
-            with open(path, "r") as file:
-                data = json.load(file)
+    for i, path in enumerate(paths):
+        with open(path, "r") as file:
+            data = json.load(file)
 
+        try:
             inputs = np.array(data[FEATURE_DATA])
             labels = np.array(data[LABEL_DATA])
-            inputs = preprocess_data(inputs)
+        except KeyError as e:
+            sys.exit(f"KeyError: JSON structure in '{path}' missing {e}")
 
-            if i == 0:
-                dataset = tf.data.Dataset.from_tensor_slices((inputs, labels))
-            else:
-                temp = tf.data.Dataset.from_tensor_slices((inputs, labels))
-                dataset = dataset.concatenate(temp)
-    except FileNotFoundError:
-        sys.exit(f"'{path}' is an invalid file path")
-    except KeyError:
-        sys.exit(f"'{path}' has an incompatible JSON structure")
+        inputs = preprocess_data(inputs)
 
+        if i == 0:
+            dataset = tf.data.Dataset.from_tensor_slices((inputs, labels))
+        else:
+            temp = tf.data.Dataset.from_tensor_slices((inputs, labels))
+            dataset = dataset.concatenate(temp)
     return dataset
 
 
@@ -58,6 +56,9 @@ def preprocess_data(inputs: Sequence[int]) -> np.array:
     :return: data of the shape (samples, time, features, channels)
     """
     scalar = StandardScaler()
+
+    if inputs.ndim != 3:
+        raise ValueError("Feature data shape must be three dimensions")
     num_samples, num_features, time_steps = inputs.shape
 
     # Normalization
@@ -68,7 +69,6 @@ def preprocess_data(inputs: Sequence[int]) -> np.array:
     inputs = np.reshape(inputs,
                         newshape=(num_samples, time_steps, num_features))
     inputs = np.expand_dims(inputs, CHANNELS)
-
     return inputs
 
 
@@ -81,5 +81,8 @@ def load_mappings(path: str) -> np.array:
     with open(path, "r") as file:
         data = json.load(file)
 
-    mappings = np.array(data[MAPPING_DATA])
+    try:
+        mappings = np.array(data[MAPPING_DATA])
+    except KeyError as e:
+        sys.exit(f"KeyError: JSON structure in '{path}' missing {e}")
     return mappings
