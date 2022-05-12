@@ -2,12 +2,10 @@ import argparse
 import pandas as pd
 import numpy as np
 import librosa
-import json
-from sklearn.utils import shuffle
 import math
 import os
 
-# # MEDIUM DATASET
+# MEDIUM DATASET
 genre_dict = {
     'International': 0, 'Blues': 1, 'Jazz': 2,
     'Classical': 3, 'Old-Time / Historic': 4,
@@ -16,11 +14,13 @@ genre_dict = {
     'Electronic': 10, 'Folk': 11, 'Spoken': 12,
     'Hip-Hop': 13, 'Experimental': 14, 'Instrumental': 15
 }
-mapping = ['International', 'Blues', 'Jazz', 'Classical',
-           'Old-Time / Historic', 'Country', 'Pop', 'Rock',
-           'Easy Listening', 'Soul-RnB', 'Electronic',
-           'Folk', 'Spoken', 'Hip-Hop', 'Experimental',
-           'Instrumental']
+mapping = [
+    'International', 'Blues', 'Jazz', 'Classical',
+    'Old-Time / Historic', 'Country', 'Pop', 'Rock',
+    'Easy Listening', 'Soul-RnB', 'Electronic',
+    'Folk', 'Spoken', 'Hip-Hop', 'Experimental',
+    'Instrumental'
+]
 
 # SMALL DATASET
 # genre_dict = {
@@ -28,22 +28,26 @@ mapping = ['International', 'Blues', 'Jazz', 'Classical',
 #     'Hip-Hop': 3, 'Instrumental': 4,
 #     'International': 5, 'Pop': 6, 'Rock': 7
 # }
-# mapping = ['Electronic', 'Experimental', 'Folk',
-#            'Hip-Hop', 'Instrumental',
-#            'International', 'Pop', 'Rock']
+# mapping = [
+#     'Electronic', 'Experimental', 'Folk',
+#     'Hip-Hop', 'Instrumental',
+#     'International', 'Pop', 'Rock'
+# ]
 
 
 def main():
     """
-    Preprocess audio files into mfccs from command line
-    and store as .json file
+    Preprocess audio files into melspectrograms from command line
+    and store as .npy file
 
-    CL: python3 preprocess.py <csv-data-filepath> <json-filepath>
+    CL: python3 preprocess.py <csv-data-filepath> \
+            <storage-dir> <batch-number>
 
     Flags: -t to pre-process "tiny" file,
            -s <int> to pre-process sample size of <int> from each genre
            Example:
-               python3 preprocess.py -s 50 <csv-data-filepath> <json-filepath>
+               python3 preprocess.py -s 50 \
+                    <csv-data-filepath> <storage-dir> <batch-number>
                will process 50 audio files from each genre
     """
 
@@ -56,8 +60,10 @@ def main():
         'csv_file_path',
         type=str,
         help='csv file with audio track filepaths and track genres')
-    parser.add_argument('json_file_path', type=str,
-                        help='path to store resulting .json file')
+    parser.add_argument('storage_dir', type=str,
+                        help='path to storage directory')
+    parser.add_argument('batch_num', type=int,
+                        help='integer number for batch')
     args = parser.parse_args()
 
     csv_file_path = args.csv_file_path
@@ -80,7 +86,8 @@ def main():
 
     process_track_list(
         csv_file_path,
-        args.json_file_path)
+        args.storage_dir,
+        args.batch_num)
 
 
 def process_track(file_path, sample_info):
@@ -93,9 +100,6 @@ def process_track(file_path, sample_info):
     :return: list of sequential mfccs for the audio file
     """
 
-    expected_signal_length = sample_info['sample_rate'] * \
-        sample_info['track_duration']
-
     try:
 
         # load audio file as floating point time series
@@ -107,8 +111,8 @@ def process_track(file_path, sample_info):
         return None
 
     # restrict signal length to maintain consistent shape along ndarrays
-    if signal.shape[0] > expected_signal_length:
-        signal = signal[:expected_signal_length]
+    if signal.shape[0] > sample_info['expected_signal_length']:
+        signal = signal[:sample_info['expected_signal_length']]
 
     # apply short-term Fourier transform
     stft = np.abs(
@@ -124,36 +128,33 @@ def process_track(file_path, sample_info):
     return mel_spectrogram
 
 
-def process_track_list(dataset_path, json_path):
+def process_track_list(dataset_path, storage_dir, batch_num):
     """
     Stores the mfcc data for each track in the dataset
     :param dataset_path: csv file from create_dataset_track_list.py
-    :param json_path: path to json output file
+    :param storage_dir: path to storage directory
+    :param batch_num: integer batch file number
     """
-
-    # dictionary to store data
-    data = {
-        "mapping": mapping,
-        "melspec": [],  # mfcc data arrays
-        "labels": []  # segment labels by "mapping" index
-    }
 
     # object to store config information for processing
     sample_info = {'sample_rate': 22050,
                    'track_duration': 30,
                    'n_fft': 2048,
-                   'hop_length': 1024}
+                   'hop_length': 1024,
+                   'mel_bins': 128}
 
-    sample_info['expected_length'] = math.ceil(
+    sample_info['expected_melspec_length'] = math.ceil(
         (sample_info['sample_rate'] *
          sample_info['track_duration']) /
         sample_info['hop_length'])
 
+    sample_info['expected_signal_length'] = \
+        sample_info['sample_rate'] * sample_info['track_duration']
+
     print('Reading csv file to dataframe...')
 
-    # create df from csv file and shuffle the data
+    # create df from csv file
     df = pd.read_csv(dataset_path)
-    df = shuffle(df).reset_index(drop=True)
 
     # create genre array that maps to the track index
     top_genres_array = df['genre_top'].to_numpy()
@@ -164,7 +165,19 @@ def process_track_list(dataset_path, json_path):
     # isolate indexed file list from dataframe
     file_list_array = df['path'].to_numpy()
 
+    num_rows = len(file_list_array)
+
+    # arrays to store data
+    melspec_array = np.zeros((
+        num_rows,
+        sample_info['mel_bins'],
+        sample_info['expected_melspec_length']
+    ))
+    labels_array = np.zeros((num_rows))
+
     print('Processing audio files...')
+    num_bad_files = 0
+    idx = 0
 
     # for TESTING  # noqa
     # for index in range(0, 5): # noqa
@@ -180,33 +193,40 @@ def process_track_list(dataset_path, json_path):
 
             # ensure melspec shape is consistent before saving
             # (128 default mel-bins, expected_length)
-            if melspec.shape != (128, sample_info['expected_length']):
+            if melspec.shape != (
+                    sample_info['mel_bins'],
+                    sample_info['expected_melspec_length']):
+
                 print(f'melspectrogram shape error: {melspec.shape}')
 
-            else:
+                num_bad_files += 1
 
-                data['melspec'].append(melspec.tolist())
-                data['labels'].append(genre_labels[index])
+            else:
+                melspec_array[idx] = melspec
+                labels_array[idx] = genre_labels[index]
+                idx += 1
 
             # display count of processed files
             count += 1
             if count % 20 == 0:
                 print(f'files processed: {count}')
 
+    # remove empty values
+    melspec_array = melspec_array[:num_rows - num_bad_files]
+    labels_array = labels_array[:num_rows - num_bad_files].astype(int)
+
     print(f'Total files processed: {count}')
 
-    print('Saving file to json...')
+    print(f'Data shape: {melspec_array.shape}')
+    print(f'Label shape: {labels_array.shape}')
 
-    # save to json file
-    with open(json_path, 'w') as jp:
-        json.dump(data, jp, indent=4)
+    print('Saving file to npy file...')
 
-    with open(json_path) as json_file:
-        data = json.load(json_file)
+    melspec_path = storage_dir + '/melspec_data_' + str(batch_num)
+    np.save(melspec_path, melspec_array, allow_pickle=False)
 
-    # print shape of saved mfccs
-    data_array = np.array([np.array(n) for n in data['melspec']])
-    print(f'Data shape: {data_array.shape}')
+    labels_path = storage_dir + '/labels_data_' + str(batch_num)
+    np.save(labels_path, labels_array, allow_pickle=False)
 
 
 if __name__ == "__main__":
