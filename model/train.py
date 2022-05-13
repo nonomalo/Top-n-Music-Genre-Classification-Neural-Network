@@ -1,6 +1,6 @@
 """Trains a neural network model on a dataset for music genre prediction.
 
-Usage: python3 train.py [-h] [-l LOAD] [-s SAVE] filepath [filepath ...]
+Usage: python3 train.py [-h] [-l LOAD] [-s SAVE] inputs labels
 """
 
 import argparse
@@ -11,12 +11,12 @@ import numpy as np
 import tensorflow as tf
 
 from build import build_model
-from dataset import load_data, load_mappings
+from dataset import create_dataset, load_mappings
 
 TRAIN_FRACTION = 0.8  # Remainder is split evenly between validation and test
 BATCH_SIZE = 32
 EPOCHS = 35
-LEARNING_RATE = 0.0002
+LEARNING_RATE = 0.0005
 
 
 def get_arguments() -> argparse.Namespace:
@@ -27,16 +27,20 @@ def get_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "filepath", nargs="+",
-        help="path to JSON file associated with dataset"
-    )
-    parser.add_argument(
         "-l", "--load",
         help="path to SavedModel or H5 file to load preconfigured model"
     )
     parser.add_argument(
         "-s", "--save",
         help="path to SavedModel or H5 file to save model"
+    )
+    parser.add_argument(
+        "inputs",
+        help="path to NumPy file associated with inputs"
+    )
+    parser.add_argument(
+        "labels",
+        help="path to NumPy file associated with labels"
     )
 
     args = parser.parse_args()
@@ -54,9 +58,9 @@ def configure_model(
     :return: built and compiled model
     """
     input_shape = get_element_shape(dataset)
-    num_labels = len(mappings)
-    model = build_model(input_shape, num_labels)
+    outputs = len(mappings)
 
+    model = build_model(input_shape, outputs)
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
@@ -76,15 +80,12 @@ def get_element_shape(dataset: tf.data.Dataset) -> tf.TensorShape:
     return shape
 
 
-def create_datasets(
+def create_training_validation_test_datasets(
     dataset: tf.data.Dataset,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
     """Splits dataset into training, validation, and test datasets
-    based on TRAIN_FRACTION. Training and validation datasets are
-    then batched based on BATCH_SIZE.
-
-    After the training dataset is created, the remainder is split
-    evenly between the validation and test datasets.
+    based on TRAIN_FRACTION. After the training dataset is created,
+    the remainder is split evenly between the validation and test datasets.
 
     :param dataset: TensorFlow dataset
     :return: datasets for training, validation, and test, respectively
@@ -93,9 +94,6 @@ def create_datasets(
 
     training_ds, remainder_ds = split_dataset(dataset, remainder_fraction)
     validation_ds, test_ds = split_dataset(remainder_ds, 0.5)
-
-    training_ds = training_ds.batch(BATCH_SIZE)
-    validation_ds = validation_ds.batch(BATCH_SIZE)
 
     return training_ds, validation_ds, test_ds
 
@@ -141,15 +139,12 @@ def display_training_metrics(history: tf.keras.callbacks.History) -> None:
     plt.show()
 
 
-def test_model(
-    model: tf.keras.Model,
-    dataset: tf.data.Dataset
-) -> None:
+def test_model(model: tf.keras.Model, dataset: tf.data.Dataset) -> None:
     """Uses trained model to make predictions on test data. Accuracy
     on entire test dataset is displayed.
 
     :param model: trained model
-    :param dataset: TensorFlow dataset of test inputs and labels
+    :param dataset: TensorFlow dataset with test inputs and labels
     :return: None
     """
     inputs, labels = get_inputs_and_labels(dataset)
@@ -187,20 +182,26 @@ def main() -> None:
     """
     args = get_arguments()
 
-    dataset = load_data(args.filepath)
-    mappings = load_mappings(args.filepath[0])
+    dataset = create_dataset(args.inputs, args.labels)
+    dataset = dataset.shuffle(dataset.__len__())
 
     if args.load:
         model = tf.keras.models.load_model(args.load)
     else:
+        mappings = load_mappings()
         model = configure_model(dataset, mappings)
     model.summary()
 
-    train_ds, validation_ds, test_ds = create_datasets(dataset)
-    history = model.fit(train_ds, epochs=EPOCHS,
+    training_ds, validation_ds, test_ds \
+        = create_training_validation_test_datasets(dataset)
+
+    training_ds = training_ds.batch(BATCH_SIZE)
+    validation_ds = validation_ds.batch(BATCH_SIZE)
+
+    history = model.fit(training_ds, epochs=EPOCHS,
                         validation_data=validation_ds,
                         callbacks=tf.keras.callbacks.EarlyStopping(verbose=1,
-                                                                   patience=2)
+                                                                   patience=3)
                         )
     display_training_metrics(history)
     test_model(model, test_ds)

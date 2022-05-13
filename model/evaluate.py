@@ -1,17 +1,18 @@
 """Evaluates a neural network model on a dataset for music genre prediction.
 
-Usage: python3 evaluate.py [-h] [-d DISPLAY] filepath [filepath ...] model
+Usage: python3 evaluate.py [-h] [-l LABELS] [-d DISPLAY] inputs model
 """
 
 import argparse
+from random import randrange
 from typing import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-from dataset import load_data, load_mappings, SAMPLES
-from train import get_inputs_and_labels
+from dataset import load_mappings, preprocess_inputs
+from dataset import SAMPLES
 
 
 def get_arguments() -> argparse.Namespace:
@@ -22,54 +23,56 @@ def get_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "filepath", nargs="+",
-        help="path to JSON file associated with dataset"
+        "-l", "--labels",
+        help="path to NumPy file associated with labels"
+    )
+    parser.add_argument(
+        "-d", "--display", default=1, type=int,
+        help="number of predictions to display"
+    )
+    parser.add_argument(
+        "inputs",
+        help="path to NumPy file associated with inputs"
     )
     parser.add_argument(
         "model",
         help="path to savedModel or H5 file to load preconfigured model"
-    )
-    parser.add_argument(
-        "-d", "--display", type=int,
-        help="number of results to display"
     )
 
     args = parser.parse_args()
     return args
 
 
-def verify_arguments(arguments: argparse.Namespace) -> None:
-    """Verifies command line arguments.
-
-    :param arguments: command line arguments object
-    :raises ValueError: when number of results to display is not positive
-    :return: None
-    """
-    if arguments.display and arguments.display < 1:
-        raise ValueError("Number of results to display must be at least one")
-
-
 def evaluate_model(
     model: tf.keras.Model,
     inputs: Sequence[int],
     mappings: Sequence[int],
-    num_display: int
+    display: int,
+    labels: Sequence[int] = None
 ) -> None:
     """Evaluates model on a dataset and displays predictions for
-    a specified number of inputs.
+    a specified number of inputs. Inputs are chosen at random
 
     :param model: preconfigured model
-    :param inputs: array associated with inputs
+    :param inputs: array associated with input
     :param mappings: array associated with mappings
-    :param num_display: number of results to display
+    :param display: number of predictions to display
+    :param labels: array associated with labels, optional
     :return: None
     """
-    for i in range(num_display):
+    for _ in range(display):
+        i = randrange(len(inputs))
+
         input = np.expand_dims(inputs[i], SAMPLES)
         prediction = model(input, training=False)
 
+        if any(labels):
+            plt.title(f"Prediction for {mappings[labels[i]]}")
+        else:
+            plt.title("Prediction")
+
         plt.bar(mappings, tf.nn.softmax(prediction[0]))
-        plt.title("Prediction")
+        plt.xlabel("Genres")
         plt.ylabel("Probability")
         plt.show()
 
@@ -80,14 +83,17 @@ def main() -> None:
     :return: None
     """
     args = get_arguments()
-    verify_arguments(args)
 
     model = tf.keras.models.load_model(args.model)
-    dataset = load_data(args.filepath)
-    mappings = load_mappings(args.filepath[0])
+    inputs = np.load(args.inputs)
+    inputs = preprocess_inputs(inputs)
+    mappings = load_mappings()
 
-    inputs, _ = get_inputs_and_labels(dataset)
-    evaluate_model(model, inputs, mappings, args.display or 1)
+    if args.labels:
+        labels = np.load(args.labels)
+        evaluate_model(model, inputs, mappings, args.display, labels)
+    else:
+        evaluate_model(model, inputs, mappings, args.display)
 
 
 if __name__ == "__main__":
