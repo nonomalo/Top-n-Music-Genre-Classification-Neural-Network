@@ -20,7 +20,7 @@ def build_model(
 
     # Convolutional block 1
     model.add(tf.keras.layers.Input(input_shape))
-    model.add(tf.keras.layers.Resizing(256, 128))
+    model.add(tf.keras.layers.Resizing(128, 128))
     model.add(tf.keras.layers.Conv2D(32, (3, 3), activation="relu"))
     model.add(tf.keras.layers.MaxPool2D(3, strides=2, padding="same"))
     model.add(tf.keras.layers.BatchNormalization())
@@ -38,6 +38,7 @@ def build_model(
     # Fully connected block
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(256, activation="relu"))
+    model.add(tf.keras.layers.Dropout(0.5))
     model.add(tf.keras.layers.Dense(128, activation="relu"))
     model.add(tf.keras.layers.Dropout(0.5))
     model.add(tf.keras.layers.Dense(outputs))

@@ -13,9 +13,10 @@ import tensorflow as tf
 from build import build_model
 from dataset import create_dataset, load_mappings
 
+DATASET_SIZE = 5000
 TRAIN_FRACTION = 0.8  # Remainder is split evenly between validation and test
 BATCH_SIZE = 32
-EPOCHS = 35
+EPOCHS = 10
 LEARNING_RATE = 0.0005
 
 
@@ -183,7 +184,7 @@ def main() -> None:
     args = get_arguments()
 
     dataset = create_dataset(args.inputs, args.labels)
-    dataset = dataset.shuffle(dataset.__len__())
+    dataset = dataset.shuffle(DATASET_SIZE)
 
     if args.load:
         model = tf.keras.models.load_model(args.load)
@@ -199,10 +200,7 @@ def main() -> None:
     validation_ds = validation_ds.batch(BATCH_SIZE)
 
     history = model.fit(training_ds, epochs=EPOCHS,
-                        validation_data=validation_ds,
-                        callbacks=tf.keras.callbacks.EarlyStopping(verbose=1,
-                                                                   patience=3)
-                        )
+                        validation_data=validation_ds)
     display_training_metrics(history)
     test_model(model, test_ds)
 
