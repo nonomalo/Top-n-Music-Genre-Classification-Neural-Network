@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Link css -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Create block in template, this is where header code is inserted for inherited pages-->
+    <title>{% block head %}{% endblock %}</title>
+</head>
+
+<body>
+    <!-- Outlines where to insert body code for each page-->
+    {% block body %}{% endblock %}
+
+</body>
+</html>
