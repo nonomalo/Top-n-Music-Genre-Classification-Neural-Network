@@ -36,11 +36,10 @@ mapping = [
 
 
 def main():
-    """
-    Preprocess audio files into melspectrograms from command line
-    and store as .npy file
+    """Preprocess audio files into mel spectrograms from command line
+    and store as .npy file.
 
-    CL: python3 preprocess.py <csv-data-filepath> \
+    CL: python3 preprocess_spectro.py <csv-data-filepath> \
             <storage-dir> <batch-number>
 
     Flags: -t to pre-process "tiny" file,
@@ -50,10 +49,8 @@ def main():
                     <csv-data-filepath> <storage-dir> <batch-number>
                will process 50 audio files from each genre
     """
-
-    # parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Preprocess audio files to mfccs')
+        description='Preprocess audio files to mel spectrograms')
     parser.add_argument('--tiny', '-t', action='store_true')
     parser.add_argument('--sample', '-s', type=int)
     parser.add_argument(
@@ -91,18 +88,18 @@ def main():
 
 
 def process_track(file_path, sample_info):
-    """
-    Creates an mfcc sequence for each audio file.
+    """Creates a mel spectrogram sequence for each audio file.
     :param file_path: file path to audio track (string)
     :param sample_info: dictionary of config settings for the processing,
-    including: 'sample_rate', 'n_mfcc', 'n_fft', 'hop_length',
-    and expected_mfcc_length
-    :return: list of sequential mfccs for the audio file
+    including: 'sample_rate', 'n_fft', 'hop_length',
+    and expected_signal_length
+
+    :return: list of sequential mel spectrograms for the audio file
     """
 
     try:
 
-        # load audio file as floating point time series
+        # load audio file as floating point time series / waveform
         signal, sr = librosa.load(file_path, sr=sample_info['sample_rate'])
 
     except FileNotFoundError:
@@ -114,23 +111,26 @@ def process_track(file_path, sample_info):
     if signal.shape[0] > sample_info['expected_signal_length']:
         signal = signal[:sample_info['expected_signal_length']]
 
+    # normalize waveform
+    signal_norm = librosa.util.normalize(signal)
+
     # apply short-term Fourier transform
     stft = np.abs(
         librosa.stft(
-            signal,
+            signal_norm,
             n_fft=sample_info['n_fft'],
             hop_length=sample_info['hop_length']))
 
-    # convert stft to spectrogram on mel-scale
-    mel_spectrogram = librosa.feature.melspectrogram(S=stft ** 2, sr=sr)
-
-    # return mfcc
-    return mel_spectrogram
+    # convert to normalized mel spectrogram
+    mel = librosa.feature.melspectrogram(S=stft**2, sr=sr)
+    mel_log = np.log(mel + 1e-9)
+    mel_norm = librosa.util.normalize(mel_log)
+    return mel_norm
 
 
 def process_track_list(dataset_path, storage_dir, batch_num):
-    """
-    Stores the mfcc data for each track in the dataset
+    """Stores the mel spectrogram data for each track in the dataset.
+
     :param dataset_path: csv file from create_dataset_track_list.py
     :param storage_dir: path to storage directory
     :param batch_num: integer batch file number
@@ -186,7 +186,7 @@ def process_track_list(dataset_path, storage_dir, batch_num):
     # loop through files in the dataframe
     for index, file in enumerate(file_list_array):
 
-        # save mfccs and corresponding genre labels
+        # save melspec and corresponding genre labels
         melspec = process_track(file, sample_info)
 
         if melspec is not None:

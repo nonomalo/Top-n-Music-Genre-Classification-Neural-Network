@@ -1,11 +1,10 @@
-"""Processes NumPy files associated with datasets to be used as input
+"""Processes .npy or .npz files associated with datasets to be used as input
 to a neural network model.
 """
 
-from typing import Sequence
+from typing import Sequence, Tuple
 
 import numpy as np
-import tensorflow as tf
 
 SAMPLES = 0
 TIME = 1
@@ -16,20 +15,18 @@ CHANNELS = 3
 def create_dataset(
     inputs_filepath: str,
     labels_filepath: str
-) -> tf.data.Dataset:
-    """Loads NumPy files associated with input data and labels,
-    performs preprocessing on input data, and creates a TensorFlow dataset.
+) -> Tuple[np.array, np.array]:
+    """Loads .npy or .npz files associated with input data and labels
+    and performs preprocessing on input data.
 
-    :param inputs_filepath: path to NumPy file associated with inputs
-    :param labels_filepath: path to NumPy file associated with labels
-    :return: TensorFlow dataset with preprocessed data
+    :param inputs_filepath: path to .npy or .npz file associated with inputs
+    :param labels_filepath: path to .npy or .npz file associated with labels
+    :return: NumPy arrays representing inputs and labels, respectively
     """
     inputs = np.load(inputs_filepath)
     inputs = preprocess_inputs(inputs)
     labels = np.load(labels_filepath)
-
-    dataset = tf.data.Dataset.from_tensor_slices((inputs, labels))
-    return dataset
+    return inputs, labels
 
 
 def preprocess_inputs(inputs: Sequence[int]) -> np.array:
@@ -37,15 +34,9 @@ def preprocess_inputs(inputs: Sequence[int]) -> np.array:
     and adding an innermost dimension representing channels.
 
     :param inputs: data of the shape (samples, features, time)
-    :raises ValueError: when provided incompatible input data shape
     :return: data of the shape (samples, time, features, channels)
     """
-    if inputs.ndim != 3:
-        raise ValueError("Input data shape must be three dimensions")
-    num_samples, num_features, time_steps = inputs.shape
-
-    inputs = np.reshape(inputs,
-                        newshape=(num_samples, time_steps, num_features))
+    inputs = np.transpose(inputs, (SAMPLES, FEATURES, TIME))
     inputs = np.expand_dims(inputs, CHANNELS)
     return inputs
 
@@ -55,11 +46,11 @@ def load_mappings() -> np.array:
 
     :return: array associated with mappings
     """
-    mappings = [
+    mappings = np.array([
         "International", "Blues", "Jazz", "Classical",
         "Old-Time / Historic", "Country", "Pop", "Rock",
         "Easy Listening", "Soul-RnB", "Electronic",
         "Folk", "Spoken", "Hip-Hop", "Experimental",
         "Instrumental"
-    ]
+    ])
     return mappings
