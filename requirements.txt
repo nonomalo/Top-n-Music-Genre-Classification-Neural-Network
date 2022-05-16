@@ -85,4 +85,5 @@ websockets==10.3
 Werkzeug==2.1.2
 wrapt==1.14.0
 youtube-dl==2021.12.17
+yt-dlp==2022.4.8
 zipp==3.8.0
