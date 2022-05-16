@@ -4,15 +4,16 @@ Usage: python3 evaluate.py [-h] [-l LABELS] [-d DISPLAY] inputs model
 """
 
 import argparse
-from random import randrange
 from typing import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.utils import shuffle
 import tensorflow as tf
 
 from dataset import load_mappings, preprocess_inputs
 from dataset import SAMPLES
+from train import test_model
 
 
 def get_arguments() -> argparse.Namespace:
@@ -21,10 +22,9 @@ def get_arguments() -> argparse.Namespace:
     :return: command line arguments object
     """
     parser = argparse.ArgumentParser()
-
     parser.add_argument(
         "-l", "--labels",
-        help="path to NumPy file associated with labels"
+        help="path to .npy or .npz file associated with labels"
     )
     parser.add_argument(
         "-d", "--display", default=1, type=int,
@@ -32,11 +32,11 @@ def get_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "inputs",
-        help="path to NumPy file associated with inputs"
+        help="path to .npy or .npz file associated with inputs"
     )
     parser.add_argument(
         "model",
-        help="path to savedModel or H5 file to load preconfigured model"
+        help="path to .tf or .h5 file to load preconfigured model"
     )
 
     args = parser.parse_args()
@@ -51,7 +51,7 @@ def evaluate_model(
     labels: Sequence[int] = None
 ) -> None:
     """Evaluates model on a dataset and displays predictions for
-    a specified number of inputs. Inputs are chosen at random
+    a specified number of inputs.
 
     :param model: preconfigured model
     :param inputs: array associated with input
@@ -60,9 +60,7 @@ def evaluate_model(
     :param labels: array associated with labels, optional
     :return: None
     """
-    for _ in range(display):
-        i = randrange(len(inputs))
-
+    for i in range(display):
         input = np.expand_dims(inputs[i], SAMPLES)
         prediction = model(input, training=False)
 
@@ -91,8 +89,11 @@ def main() -> None:
 
     if args.labels:
         labels = np.load(args.labels)
+        inputs, labels = shuffle(inputs, labels)
         evaluate_model(model, inputs, mappings, args.display, labels)
+        test_model(model, inputs, labels, mappings)
     else:
+        inputs = shuffle(inputs)
         evaluate_model(model, inputs, mappings, args.display)
 
 
