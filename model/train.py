@@ -13,13 +13,11 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 from build import build_model
-from dataset import create_dataset, load_mappings
-from dataset import CHANNELS, FEATURES, TIME
-
-TRAINING_FRACTION = 0.8  # Remainder is equally split between val. and test
-BATCH_SIZE = 32
-EPOCHS = 20
-LEARNING_RATE = 0.001
+from constants import CHANNELS, FEATURES, TIME
+from constants import MAPPINGS
+from constants import BATCH_SIZE, CALLBACKS, EPOCHS
+from constants import LEARNING_RATE, TRAINING_FRACTION
+from dataset import create_dataset
 
 
 def get_arguments() -> argparse.Namespace:
@@ -169,12 +167,11 @@ def main() -> None:
     """
     args = get_arguments()
     inputs, labels = create_dataset(args.inputs, args.labels)
-    mappings = load_mappings()
 
     if args.load:
         model = tf.keras.models.load_model(args.load)
     else:
-        model = configure_model(inputs, mappings)
+        model = configure_model(inputs, MAPPINGS)
     model.summary()
 
     training_inputs, remainder_inputs, training_labels, remainder_labels \
@@ -188,10 +185,11 @@ def main() -> None:
 
     history = model.fit(training_inputs, training_labels,
                         batch_size=BATCH_SIZE, epochs=EPOCHS,
+                        callbacks=CALLBACKS,
                         validation_data=(validation_inputs, validation_labels)
                         )
     display_training_metrics(history)
-    test_model(model, test_inputs, test_labels, mappings)
+    test_model(model, test_inputs, test_labels, MAPPINGS)
 
     if args.save:
         model.save(args.save)

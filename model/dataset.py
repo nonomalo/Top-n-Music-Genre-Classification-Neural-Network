@@ -6,10 +6,7 @@ from typing import Sequence, Tuple
 
 import numpy as np
 
-SAMPLES = 0
-TIME = 1
-FEATURES = 2
-CHANNELS = 3
+from constants import CHANNELS, FEATURES, SAMPLES, TIME
 
 
 def create_dataset(
@@ -39,18 +36,3 @@ def preprocess_inputs(inputs: Sequence[int]) -> np.array:
     inputs = np.transpose(inputs, (SAMPLES, FEATURES, TIME))
     inputs = np.expand_dims(inputs, CHANNELS)
     return inputs
-
-
-def load_mappings() -> np.array:
-    """Returns mappings data.
-
-    :return: array associated with mappings
-    """
-    mappings = np.array([
-        "International", "Blues", "Jazz", "Classical",
-        "Old-Time / Historic", "Country", "Pop", "Rock",
-        "Easy Listening", "Soul-RnB", "Electronic",
-        "Folk", "Spoken", "Hip-Hop", "Experimental",
-        "Instrumental"
-    ])
-    return mappings
