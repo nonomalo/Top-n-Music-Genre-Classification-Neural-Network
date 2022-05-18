@@ -1,61 +1,80 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
+from werkzeug.utils import secure_filename
+import os
+import base64
 import math
-from process import download_wav_file, process_track
-from process import STORED_AUDIO
-from process import N_MFCC, SAMPLE_RATE, TRACK_DURATION, HOP_LENGTH
+import tensorflow as tf
+from process import process_track
+from process import SAMPLE_RATE, TRACK_DURATION, HOP_LENGTH, MEL_BINS
+from model.dataset import load_mappings, preprocess_inputs
+from model.evaluate import evaluate_model
 
 app = Flask(__name__)
 
+# Create a directory in a known location to save files to.
+audio_dir = os.path.join('audio')
+if not os.path.isdir(audio_dir):
+    os.mkdir(audio_dir)
+
+ACCEPTED_EXTENSIONS = {'wav'}
+
+def is_allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ACCEPTED_EXTENSIONS
+
+@app.route('/')
+def home():
+    return render_template('index.html', message='Server is running...')
 
 @app.route('/genre', methods=['POST'])
 def predict_genre():
-    content = request.json
-    expected = ['url']
+    if 'audio' not in request.files:
+        print(request.files)
+        return jsonify({
+            'error': 'Expecting audio file, but no file found'
+        }), 406
 
-    # check for url in content
-    for name in content:
-        if name not in expected:
-            return jsonify({
-                'error': f'Unexpected field: {name}'
-            }), 400
+    # get file and check for errors
+    audio_file = request.files['audio']
 
-    # check for extraneous json fields
-    for name in expected:
-        if name not in content:
-            return jsonify({
-                'error': f'Missing field: {name}'
-            }), 400
+    if not audio_file:
+        return jsonify({
+            'error': 'Missing audio file'
+        }), 406
 
-    # get the wav file
-    url = content['url']
-    error = download_wav_file(url)
+    if not is_allowed_file(audio_file.filename):
+        ext = audio_file.filename.rsplit('.', 1)[1].lower()
+        return jsonify({
+            'error': f'File type {ext} not accepted'
+        }), 400
 
-    if error:
-        error = f'{error}'
-        return jsonify({'error': error}), 400
+    filename = secure_filename(audio_file.filename)
+    audio_file.save(os.path.join(audio_dir, filename))
 
     # get the data from processed wav file
-    mfccs = process_track(STORED_AUDIO)
-    if mfccs is None:
+    mel_norm = process_track(audio_dir + '/' + filename)
+    if mel_norm is None:
         return jsonify({
             'error': 'Unable to extract data from audio file'
         }), 400
 
     # check that data shape is correct
-    expected_mfcc_length = math.ceil(
+    expected_melspec_length = math.ceil(
         (SAMPLE_RATE * TRACK_DURATION) / HOP_LENGTH
     )
-    if mfccs.shape != (N_MFCC, expected_mfcc_length):
+    if mel_norm.shape != (MEL_BINS, expected_melspec_length):
         return jsonify({
-            'error': f'MFCC shape error: track from \
-            {url} may not be long enough'
+            'error': f'MFCC shape error: track  \
+            may not be long enough'
         }), 422
 
     # run the processed data through the prediction model
-    return jsonify({
-        'genres': 'THIS IS WHERE WE WOULD RUN THE MODEL'
-    }), 200
+    model = tf.keras.models.load_model('model/model.h5')
+    inputs = preprocess_inputs([mel_norm])
+    mappings = load_mappings()
+    json_dict = evaluate_model(model, inputs, mappings, 1)
 
+    return jsonify(json_dict), 200
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__=="__main__":
+    app.run(host='127.0.0.1', port=8080)
