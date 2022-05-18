@@ -9,5 +9,6 @@ preprocess/json_data.json
 csv/
 preprocess/audio
 server/audio
+server/server-venv
 .vscode/
 __pycache__/
