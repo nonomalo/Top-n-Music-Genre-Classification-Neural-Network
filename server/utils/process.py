@@ -2,8 +2,6 @@ from __future__ import unicode_literals
 import os
 import librosa
 import numpy as np
-import re
-import math
 
 # config information for processing:
 SAMPLE_RATE = 22050

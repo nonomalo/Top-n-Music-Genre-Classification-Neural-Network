@@ -2,7 +2,7 @@
 to a neural network model.
 """
 
-from typing import Sequence, Tuple
+from typing import Sequence
 
 import numpy as np
 

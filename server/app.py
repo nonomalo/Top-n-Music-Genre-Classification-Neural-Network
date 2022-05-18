@@ -1,11 +1,10 @@
 from flask import Flask, request, jsonify, render_template
 from werkzeug.utils import secure_filename
 import os
-import base64
 import math
 import tensorflow as tf
-from process import process_track
-from process import SAMPLE_RATE, TRACK_DURATION, HOP_LENGTH, MEL_BINS
+from utils.process import process_track
+from utils.process import SAMPLE_RATE, TRACK_DURATION, HOP_LENGTH, MEL_BINS
 from model.dataset import load_mappings, preprocess_inputs
 from model.evaluate import evaluate_model
 
@@ -18,13 +17,16 @@ if not os.path.isdir(audio_dir):
 
 ACCEPTED_EXTENSIONS = {'wav'}
 
+
 def is_allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ACCEPTED_EXTENSIONS
 
+
 @app.route('/')
 def home():
     return render_template('index.html', message='Server is running...')
+
 
 @app.route('/genre', methods=['POST'])
 def predict_genre():
@@ -64,7 +66,7 @@ def predict_genre():
     )
     if mel_norm.shape != (MEL_BINS, expected_melspec_length):
         return jsonify({
-            'error': f'MFCC shape error: track  \
+            'error': 'MFCC shape error: track  \
             may not be long enough'
         }), 422
 
@@ -76,5 +78,6 @@ def predict_genre():
 
     return jsonify(json_dict), 200
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080)

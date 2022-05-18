@@ -1,16 +1,14 @@
 """Evaluates a neural network model on a dataset for music genre prediction.
 """
 
-from typing import Sequence
+from typing import Sequence, Dict
 import numpy as np
-from sklearn.utils import shuffle
 import tensorflow as tf
-import io
 from tensorflow.python.ops.numpy_ops import np_config
-np_config.enable_numpy_behavior()
 
-from model.dataset import load_mappings, preprocess_inputs
 from model.dataset import SAMPLES
+
+np_config.enable_numpy_behavior()
 
 
 def evaluate_model(
@@ -19,7 +17,7 @@ def evaluate_model(
     mappings: Sequence[int],
     display: int,
     labels: Sequence[int] = None
-) -> None:
+) -> Dict[str, float]:
     """Evaluates model on a dataset and displays predictions for
     a specified number of inputs.
 
@@ -28,7 +26,7 @@ def evaluate_model(
     :param mappings: array associated with mappings
     :param display: number of predictions to display
     :param labels: array associated with labels, optional
-    :return: None
+    :return: dictionary of genres with each prediction
     """
     json_dict = {'genres': []}
 
