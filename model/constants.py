@@ -17,9 +17,9 @@ MAPPINGS = [
 
 TRAINING_FRACTION = 0.9
 BATCH_SIZE = 32
-EPOCHS = 20
+EPOCHS = 35
 LEARNING_RATE = 0.001
 CALLBACKS = [
-    tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=3,
+    tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10,
                                      restore_best_weights=True)
 ]
