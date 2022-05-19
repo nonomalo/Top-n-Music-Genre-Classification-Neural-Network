@@ -226,12 +226,14 @@ def split_audio_files(wav_file_path):
     original_audio_segment = AudioSegment.from_file(wav_file_path, "")
     split_chunks = make_chunks(original_audio_segment, thirty_seconds_in_milliseconds)
 
+    split_wav_file_list = []
+
     for i, chunk in enumerate(split_chunks):
         chunk_name = "chunk{0}.wav".format(i)
-        print
-        "exporting", chunk_name
         # Export each chunk to the same folder the function is called from for processing
-        chunk.export(chunk_name, format="wav")
+        split_wav_file_list.append(chunk.export(chunk_name, format="wav"))
+
+    return split_wav_file_list
 
 
 if __name__ == "__main__":
