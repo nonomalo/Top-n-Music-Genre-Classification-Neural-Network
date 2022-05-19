@@ -6,6 +6,10 @@ import json
 from sklearn.utils import shuffle
 import math
 import os
+from pydub import AudioSegment
+from pydub.utils import make_chunks
+
+
 
 # # MEDIUM DATASET
 # genre_dict = {
@@ -213,6 +217,21 @@ def process_track_list(dataset_path, json_path):
     # print shape of saved mfccs
     mfcc_array = np.array([np.array(n) for n in data['mfcc']])
     print(f'MFCCs shape: {mfcc_array.shape}')
+
+
+def split_audio_files(wav_file_path):
+    "Pass wav file path, split it into thirty second chunks and return a list of each chunk transformed into wav files"
+
+    thirty_seconds_in_milliseconds = 30000
+    original_audio_segment = AudioSegment.from_file(wav_file_path, "")
+    split_chunks = make_chunks(original_audio_segment, thirty_seconds_in_milliseconds)
+
+    for i, chunk in enumerate(split_chunks):
+        chunk_name = "chunk{0}.wav".format(i)
+        print
+        "exporting", chunk_name
+        # Export each chunk to the same folder the function is called from for processing
+        chunk.export(chunk_name, format="wav")
 
 
 if __name__ == "__main__":
