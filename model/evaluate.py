@@ -11,8 +11,8 @@ import numpy as np
 from sklearn.utils import shuffle
 import tensorflow as tf
 
-from constants import MAPPINGS, SAMPLES
-from dataset import preprocess_inputs
+from dataset import load_mappings, preprocess_inputs
+from dataset import SAMPLES
 from train import test_model
 
 
@@ -85,15 +85,16 @@ def main() -> None:
     model = tf.keras.models.load_model(args.model)
     inputs = np.load(args.inputs)
     inputs = preprocess_inputs(inputs)
+    mappings = load_mappings()
 
     if args.labels:
         labels = np.load(args.labels)
         inputs, labels = shuffle(inputs, labels)
-        evaluate_model(model, inputs, MAPPINGS, args.display, labels)
-        test_model(model, inputs, labels, MAPPINGS)
+        evaluate_model(model, inputs, mappings, args.display, labels)
+        test_model(model, inputs, labels, mappings)
     else:
         inputs = shuffle(inputs)
-        evaluate_model(model, inputs, MAPPINGS, args.display)
+        evaluate_model(model, inputs, mappings, args.display)
 
 
 if __name__ == "__main__":
