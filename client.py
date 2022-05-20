@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for
 
 app = Flask(__name__)
 
@@ -8,13 +8,15 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+
 # route to upload file
 @app.route('/', methods=['POST'])
- def upload_file():
-     uploaded_file = request.files['file']
-     if uploaded_file.filename != '':
-         uploaded_file.save(uploaded_file.filename)
-     return redirect(url_for('index'))
+def upload_file():
+    uploaded_file = request.files['file']
+    if uploaded_file.filename != '':
+        uploaded_file.save(uploaded_file.filename)
+    return redirect(url_for('index'))
+
 
 # route to about project page
 @app.route('/about')
