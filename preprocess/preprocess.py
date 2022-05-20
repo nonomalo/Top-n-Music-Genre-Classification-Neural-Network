@@ -10,7 +10,6 @@ from pydub import AudioSegment
 from pydub.utils import make_chunks
 
 
-
 # # MEDIUM DATASET
 # genre_dict = {
 #     'International': 0, 'Blues': 1, 'Jazz': 2,
@@ -224,13 +223,16 @@ def split_audio_files(wav_file_path):
 
     thirty_seconds_in_milliseconds = 30000
     original_audio_segment = AudioSegment.from_file(wav_file_path, "")
-    split_chunks = make_chunks(original_audio_segment, thirty_seconds_in_milliseconds)
+    split_chunks = make_chunks(
+        original_audio_segment,
+        thirty_seconds_in_milliseconds)
 
     split_wav_file_list = []
 
     for i, chunk in enumerate(split_chunks):
         chunk_name = "chunk{0}.wav".format(i)
-        # Export each chunk to the same folder the function is called from for processing
+        # Export each chunk to the same folder the function is called from for
+        # processing
         split_wav_file_list.append(chunk.export(chunk_name, format="wav"))
 
     return split_wav_file_list
