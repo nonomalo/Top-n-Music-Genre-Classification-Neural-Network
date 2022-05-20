@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template
 from werkzeug.utils import secure_filename
 import os
 import math
@@ -77,6 +77,7 @@ def predict_genre():
     json_dict = evaluate_model(model, inputs, mappings, 1)
 
     return jsonify(json_dict), 200
+
 
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080)
