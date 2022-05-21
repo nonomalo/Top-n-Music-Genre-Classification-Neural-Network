@@ -35,4 +35,42 @@
             </div>
         </div>
     </div>
+    <div class="container dashboard">
+        <div class="row">
+            <div class="col-4 dash-border" id="narrow-data">
+                <div class="row small-dash-row">
+                    <img src="static/img/placeholder_wave.png" class="img-thumbnail mx-auto small-plot">
+                </div>
+                <div class="row small-dash-row">
+                    <img src="static/img/placeholder_spectrogram.png" class="img-thumbnail mx-auto small-plot">
+                </div>
+                <div class="row small-dash-row">
+                    <img src="static/img/placeholder_mfccs.png" class="img-thumbnail mx-auto small-plot">
+                </div>
+            </div>
+            <div class="col-8" id="wide-data">
+                <div class="row wide-dash-row">
+                    <div class="dash-text-display d-flex align-items-center justify-content-center">Audio Sample: Title Goes Here</div>
+                </div>
+                <div class="row wide-dash-row">
+                    <div class="crop-image-container dash-border">
+                        <img src="static/img/placeholder_predictions.png" class="img-thumbnail mx-auto wide-plot">
+                    </div>
+                </div>
+                <div class="row wide-dash-row">
+                    <div class="dash-text-display d-flex align-items-center justify-content-center">Display Status Messages Here</div>
+                </div>
+                <div class="row wide-dash-row">
+                    <div class="dash-border" id="dash-model-metrics">
+                        <div class="row title justify-content-center">Model Metrics</div>
+                        <div class="row">
+                            <div class="col"></div>
+                            <div class="col"></div>
+                            <div class="col"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
