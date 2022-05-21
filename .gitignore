@@ -10,5 +10,6 @@ csv/
 preprocess/audio
 server/audio
 server/server-venv
+client/client-venv
 .vscode/
 __pycache__/

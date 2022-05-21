@@ -16,10 +16,14 @@ from build import build_model
 from dataset import create_dataset, load_mappings
 from dataset import CHANNELS, FEATURES, TIME
 
-TRAINING_FRACTION = 0.8  # Remainder is equally split between val. and test
+TRAINING_FRACTION = 0.9
 BATCH_SIZE = 32
-EPOCHS = 20
+EPOCHS = 35
 LEARNING_RATE = 0.001
+CALLBACKS = [
+    tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10,
+                                     restore_best_weights=True)
+]
 
 
 def get_arguments() -> argparse.Namespace:
@@ -188,6 +192,7 @@ def main() -> None:
 
     history = model.fit(training_inputs, training_labels,
                         batch_size=BATCH_SIZE, epochs=EPOCHS,
+                        callbacks=CALLBACKS,
                         validation_data=(validation_inputs, validation_labels)
                         )
     display_training_metrics(history)
