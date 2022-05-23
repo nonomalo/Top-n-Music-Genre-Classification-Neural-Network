@@ -19,11 +19,11 @@
             <div class="col-3 form-group">
                 <body>
                     <!-- Form for audio submission-->
-                    <form method="POST" action="" enctype="multipart/form-data" class="form">
+                    <form method="POST" action="" enctype="multipart/form-data" class="form" id="audio-file-form">
                         <p>Submit a Song URL:</p>
-                        <p><input type="text" name="text" class="form-control"></p>
+                        <p><input type="text" name="text" class="form-control" id="audio-url"></p>
                         <p>Submit an Audio File:</p>
-                        <p><input type="file" name="file" class="form-control"></p>
+                        <p><input type="file" name="file" class="form-control" id="audio-file"></p>
                         <br>
                         <p class="submit"><input type="submit" value="Submit"></p>
                     </form>
@@ -35,7 +35,7 @@
             </div>
         </div>
     </div>
-    <div class="container dashboard">
+    <div class="container dashboard" id="dashboard">
         <div class="row">
             <div class="col-4 dash-border" id="narrow-data">
                 <div class="row small-dash-row">
@@ -73,4 +73,5 @@
             </div>
         </div>
     </div>
+    <script src="{{url_for('static', filename='js/form.js')}}"></script>
 {% endblock %}

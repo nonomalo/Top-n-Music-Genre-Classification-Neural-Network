@@ -1,4 +1,7 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, jsonify
+import uuid
+
+from utils.fetch_audio import download_wav_file
 
 app = Flask(__name__)
 
@@ -16,6 +19,20 @@ def upload_file():
     if uploaded_file.filename != '':
         uploaded_file.save(uploaded_file.filename)
     return redirect(url_for('index'))
+
+
+# route to fetch wav file from url
+@app.route('/fetch_audio', methods=['POST'])
+def fetch_audio():
+    audio_url = request.get_json().get('audio_url')
+    print(audio_url)
+    if audio_url != '':
+        unique = uuid.uuid4()
+        data = download_wav_file(audio_url, str(unique))
+        print(data)
+        return jsonify(data)
+    else:
+        return jsonify({'error': 'Url was empty'})
 
 
 # route to about project page
