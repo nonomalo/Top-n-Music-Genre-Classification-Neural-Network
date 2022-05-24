@@ -7,6 +7,8 @@ import json
 from utils.fetch_audio import download_wav_file
 from utils.create_plots import create_plots, create_prediction_plot
 
+GENRE_SERVER = 'https://top-n-server.uw.r.appspot.com'
+
 app = Flask(__name__)
 
 
@@ -26,55 +28,43 @@ def upload_file():
 
 
 # route to fetch wav file from url
-@app.route('/fetch_audio', methods=['POST'])
-def fetch_audio():
+@app.route('/fetch_data', methods=['POST'])
+def fetch_data():
     audio_url = request.get_json().get('audio_url')
     if audio_url != '':
 
+        # create a unique id for the audio file
         unique = uuid.uuid4()
         data = download_wav_file(audio_url, str(unique))
 
+        # create and save graph images for wav file
         plots = create_plots(data['filename'])
         data['plots'] = plots
         print('created track plots')
 
+        # request genre predictions from server
         try:
-            res = requests.post('https://top-n-server.uw.r.appspot.com/genre',
-                                files={'audio': open(data['filename'], 'rb')})
-            print('received predictions')
+            res = requests.post(
+                GENRE_SERVER + '/genre',
+                files={'audio': open(data['filename'], 'rb')},
+                timeout=30
+            )
             if res.status_code == 200:
-                os.remove(data['filename'])
-                print(res.text)
-                data['predictions'] = create_prediction_plot(json.loads(res.content))
-
+                data['predictions'] = \
+                    create_prediction_plot(json.loads(res.content))
             else:
                 print(res.text)
+        except Exception as err:
+            print(err)
 
+        # remove the audio file from storage
+        try:
+            os.remove(data['filename'])
         except Exception as err:
             print(err)
 
         return jsonify(data)
 
-
-# route to fetch plots for wav file
-@app.route('/fetch_plots', methods=['POST'])
-def fetch_plots():
-    audio_filename = request.get_json().get('filename')
-    if audio_filename != '':
-        data = create_plots(audio_filename)
-        return jsonify(data)
-    else:
-        return jsonify({'error': 'audio filename not included in request'})
-
-# route to fetch predictions for wav file
-@app.route('/fetch_predictions', methods=['POST'])
-def fetch_predictions():
-    audio_filename = request.get_json().get('filename')
-    if audio_filename != '':
-        file = {'audio': (audio_filename, open(audio_filename, 'rb'))}
-        data = requests.post('https://top-n-server.uw.r.appspot.com/genre', file)
-        print(data)
-    return data
 
 # route to about project page
 @app.route('/about')
