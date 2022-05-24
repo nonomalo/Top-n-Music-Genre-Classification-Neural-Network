@@ -4,6 +4,8 @@ import numpy as np
 import librosa
 import math
 import os
+from pydub import AudioSegment
+from pydub.utils import make_chunks
 
 # MEDIUM DATASET
 genre_dict = {
@@ -125,6 +127,7 @@ def process_track(file_path, sample_info):
     mel = librosa.feature.melspectrogram(S=stft**2, sr=sr)
     mel_log = np.log(mel + 1e-9)
     mel_norm = librosa.util.normalize(mel_log)
+
     return mel_norm
 
 
@@ -186,30 +189,34 @@ def process_track_list(dataset_path, storage_dir, batch_num):
     # loop through files in the dataframe
     for index, file in enumerate(file_list_array):
 
-        # save melspec and corresponding genre labels
-        melspec = process_track(file, sample_info)
+        split_audio_files_path_list = split_audio_files(file)
 
-        if melspec is not None:
+        for audio_file_slice_name in split_audio_files_path_list:
 
-            # ensure melspec shape is consistent before saving
-            # (128 default mel-bins, expected_length)
-            if melspec.shape != (
-                    sample_info['mel_bins'],
-                    sample_info['expected_melspec_length']):
+            # save melspec and corresponding genre labels
+            melspec = process_track(audio_file_slice_name, sample_info)
 
-                print(f'melspectrogram shape error: {melspec.shape}')
+            if melspec is not None:
 
-                num_bad_files += 1
+                # ensure melspec shape is consistent before saving
+                # (128 default mel-bins, expected_length)
+                if melspec.shape != (
+                        sample_info['mel_bins'],
+                        sample_info['expected_melspec_length']):
 
-            else:
-                melspec_array[idx] = melspec
-                labels_array[idx] = genre_labels[index]
-                idx += 1
+                    print(f'melspectrogram shape error: {melspec.shape}')
 
-            # display count of processed files
-            count += 1
-            if count % 20 == 0:
-                print(f'files processed: {count}')
+                    num_bad_files += 1
+
+                else:
+                    melspec_array[idx] = melspec
+                    labels_array[idx] = genre_labels[index]
+                    idx += 1
+
+                # display count of processed files
+                count += 1
+                if count % 20 == 0:
+                    print(f'files processed: {count}')
 
     # remove empty values
     melspec_array = melspec_array[:num_rows - num_bad_files]
@@ -227,6 +234,29 @@ def process_track_list(dataset_path, storage_dir, batch_num):
 
     labels_path = storage_dir + '/labels_data_' + str(batch_num)
     np.save(labels_path, labels_array, allow_pickle=False)
+
+
+def split_audio_files(wav_file_path):
+    six_seconds_in_milliseconds = 6000
+    original_audio_segment = AudioSegment.from_file(wav_file_path, "")
+    split_chunks = make_chunks(
+        original_audio_segment,
+        six_seconds_in_milliseconds)
+
+    split_wav_file_list = []
+
+    for i, chunk in enumerate(split_chunks):
+        original_file_name = str(wav_file_path)
+        new_file_name = original_file_name + "chunk{0}.wav"
+        chunk_name = new_file_name.format(i)
+        # Export each chunk to the same folder the function is called from for
+        # processing
+        (chunk.export(chunk_name, format="wav"))
+        # Export each chunk to the same folder the function is called from for
+        # processing
+        split_wav_file_list.append(chunk_name)
+
+    return split_wav_file_list
 
 
 if __name__ == "__main__":
