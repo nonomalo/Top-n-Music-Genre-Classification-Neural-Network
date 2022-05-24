@@ -34,10 +34,13 @@ def download_wav_file(url, unique_id):
 
             data = {
                 'filename': store_as + '.wav',
-                'title': metadata['title'],
-                'track': metadata['track'],
-                'artist': metadata['artist']
+                'title': metadata['title']
             }
+
+            if 'track' in metadata:
+                data['track'] = metadata['track']
+            if 'artist' in metadata:
+                data['artist'] = metadata['artist']
 
     except yt_dlp.utils.DownloadError as e:
         # remove special string formatting:
