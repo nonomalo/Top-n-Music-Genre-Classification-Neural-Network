@@ -1,0 +1,38 @@
+{% block dash %}
+<div class="container dashboard" id="dashboard">
+        <div class="row">
+            <!-- Artist and title display -->
+            <div class="dash-text-display d-flex align-items-center justify-content-center" id="audio-title"></div>
+        </div>
+        <div class="row">
+            <!-- Audio data plots for wav file -->
+            <div class="col-4 dash-border" id="narrow-data">
+                <div class="row small-dash-row" id="waveform"></div>
+                <div class="row small-dash-row" id="spectrogram"></div>
+                <div class="row small-dash-row" id="mfccs"></div>
+            </div>
+            <!-- Prediction & Model Metrics container -->
+            <div class="col-8" id="wide-data">
+                <!-- Predictions data plot -->
+                <div class="row wide-dash-row">
+                    <div class="crop-image-container dash-border" id="predictions"></div>
+                </div>
+                <!-- Model metrics display -->
+                <div class="row wide-dash-row">
+                    <div class="dash-border" id="dash-model-metrics">
+                        <div class="row title justify-content-center">Model Metrics</div>
+                        <div class="row">
+                            <div class="col" id="model-loss"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col" id="model-accuracy"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col" id="confusion-matrix"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

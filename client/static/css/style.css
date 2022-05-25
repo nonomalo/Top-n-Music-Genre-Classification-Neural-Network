@@ -24,3 +24,58 @@
 body {
     background-color: #ECECEC;
 }
+
+/* Dashboard css */
+.dashboard {
+    display: none;
+    padding-top: 100px;
+}
+
+.dash-border {
+    border-style: solid;
+    border-color: #2C0955;
+    border-width: 5px;
+    border-radius: 10px;
+}
+
+.small-dash-row {
+    padding-left: 2%;
+    padding-right: 2%;
+}
+
+.small-plot {
+    margin: 2%;
+}
+
+#narrow-data {
+    height: 60%;
+}
+
+#dash-model-metrics {
+    width: 96%;
+    padding: 2%;
+    margin: 2%;
+}
+
+.row.title {
+    font-family: "Times New Roman", serif;
+    padding: 2%;
+}
+
+.dash-text-display {
+    background-color: #0B0A0A;
+    color: white;
+    width: 100%;
+    margin: 2%;
+    padding: 1%;
+    border-radius: 10px;
+}
+
+.crop-image-container {
+    overflow: hidden;
+    margin: 2%;
+}
+
+.wide-plot {
+    margin-bottom: -10%;
+}
