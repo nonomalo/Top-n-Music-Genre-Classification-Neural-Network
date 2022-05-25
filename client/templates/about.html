@@ -7,13 +7,121 @@ About
 
 <!-- Body -->
 {% block body %}
-<div style="text-align: center">
-    <h1>About</h1>
+<div>
+    <h1 style="text-align: center">Goal</h1>
     <br>
-    <p style="margin-left: 20%; margin-right: 20%">For our capstone project, our team of
-        music enthusiasts and programmers worked on creating and training a neural network
-        to predict music genres from a curated dataset of song clips. This project helped
-        develop our collaborative skills as software engineers as well as build new skills
-        in machine learning and software implementation.</p>
+    <ul style="margin-left: 20%; margin-right: 20%">
+        <li>
+            Train a neural network to predict the music genre of an audio track
+        </li><br>
+    </ul>
+</div>
+
+<div>
+    <h1 style="text-align: center">Background</h1>
+    <br>
+    <ul style="margin-left: 20%; margin-right: 20%">
+        <li>
+            A neural network is a computing system that uses artificial intelligence to recognize the underlying
+            patterns and relationships within a dataset.
+        </li><br>
+        <li>
+            Neural networks can be trained using curated datasets. Feeding a neural network a large dataset of labelled
+            images will allow the neural network to learn and improve its recognition of unlabelled images it has not
+            seen before.
+        </li><br>
+        <li>
+            In this case, we trained the neural network by providing it with a large dataset of clips that are labelled
+            by genre.
+        </li><br>
+        <li>
+            We used the the Free Music Archive (FMA) medium dataset for training. The dataset consists of 25,000 mp3
+            files. It contains metadata for 30 second audio files and each track is tagged as one of 16 genre
+            classifications.
+        </li><br>
+    </ul>
+</div>
+
+<div>
+    <h1 style="text-align: center">Implementation</h1>
+    <br>
+    <ul style="margin-left: 20%; margin-right: 20%">
+        <li>
+            The project revolves around TensorFlow and Keras for the neural network, librosa for audio processing,
+            and Flask for the web framework.
+        </li><br>
+        <li>
+            Each track undergoes a transformation and becomes represented as a spectrogram: a visualization of the
+            frequency spectrum over time. Certain representations - notably spectrograms on the mel scale - are found
+            to be distinct between genres.
+        </li><br>
+        <li>
+            Convolutional neural networks are commonly used for image classification tasks. As a result, we trained one
+            to classify 16 genres. In particular:
+            <ul>
+                <br><li>
+                    A 2D convolution is used which allows the model to learn about spatial information. A small filter
+                    scans the input data - the mel-scaled spectrogram - to identify features.
+                </li>
+                <br><li>
+                    The input data is analogous to a grayscale image.
+                </li>
+            </ul>
+        </li><br>
+        <li>
+            We used youtube-dl and ffmpeg to convert the mp3 files to wav format, then used the NumPy and Librosa
+            Python libraries to compute the mel-scaled spectrogram with normalized values. We used Pandas to extract
+            the genre label for each track.
+        </li><br>
+    </ul>
+</div>
+
+<div>
+    <h1 style="text-align: center">Outcome</h1>
+    <br>
+    <ul style="margin-left: 20%; margin-right: 20%">
+        <li>
+            We have deployed two applications to demonstrate the trained model:
+            <ul>
+                <br><li>
+                    One is a Flask web service that accepts a wav formatted file, processes the audio into a mel-scaled
+                    spectrogram with normalized values, and runs it through the trained model, returning the prediction
+                    values by genre.
+                </li>
+                <br><li>
+                    The other is a Flask web application that asks the user to input a URL or upload a music file. The
+                    application uses the yt-dlp Python library to fetch an audio file from the URL. The app calls our
+                    web service, which delivers the genre predictions for the user’s file. We use Librosa and
+                    Matplotlib to display a data visualization dashboard of graphs related to the user’s audio file,
+                    metrics about the model, and the model’s genre predictions for the user’s track.
+                </li>
+            </ul>
+        </li><br>
+        <li>
+            Using the mel spectrogram representation of tracks as the dataset, the trained model is capable of
+            predicting the correct genre approximately 60% of the time on unseen tracks.
+        </li><br>
+        <li>
+            Training can be done in multiple ways as indicated by options passed on the command line. Some options
+            include building and training a model from scratch, saving a model after a training session, and loading a
+            model to continue training. Training sessions conclude by displaying metrics including training and
+            validation loss, training and validation accuracy, and a confusion matrix.
+            <ul>
+                <br><li>
+                    This provides necessary insight and allows those training a model to make reasoned updates and
+                    optimizations in future training sessions.
+                </li>
+            </ul>
+        </li><br>
+        <li>
+            Evaluating a previously trained model is also possible which displays the prediction values by genre.
+            Predictions for one or many tracks are capable of being displayed, with or without labels.
+            <ul>
+                <br><li>
+                    If provided labels, additional metrics are displayed, notably a confusion matrix.
+                </li>
+            </ul>
+        </li><br>
+    </ul>
 </div>
 {% endblock %}
