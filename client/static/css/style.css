@@ -17,6 +17,15 @@
     font-family: "Times New Roman", serif;
 }
 
+#center-title {
+    text-align: center;
+}
+
+#list-margins {
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
 .submit {
     text-align: center;
 }
