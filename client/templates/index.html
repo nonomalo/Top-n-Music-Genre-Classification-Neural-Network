@@ -9,7 +9,7 @@
 {% block body %}
     <div class="container">
         <div class="row">
-            <div class="col-6">
+            <div class="col-4">
                 <!-- Title and explanation of program -->
                 <h1 id="title">Top-n Music Genre Classification Neural Network</h1>
                 <p>Type a YouTube URL or upload a song, and you will receive a formatted
@@ -19,7 +19,7 @@
             <div class="col-3 form-group">
                 <body>
                     <!-- Form for audio submission-->
-                    <form method="POST" action="" enctype="multipart/form-data" class="form" id="audio-file-form">
+                    <form method="POST" action="/fetch_data" enctype="multipart/form-data" class="form" id="audio-file-form">
                         <p>Submit a Song URL:</p>
                         <p><input type="text" name="text" class="form-control" id="audio-url"></p>
                         <p>Submit an Audio File:</p>
@@ -30,11 +30,13 @@
                 </body>
             </div>
             <!-- Wireframe mentioned an image here, leaving open until image is decided-->
-            <div class="col-3">
-                <p class="placeholder">placeholder text</p>
+            <div class="col-5">
+                <img src="static/img/dj.jpg" class="placeholder image-fluid">
             </div>
         </div>
+        <div class="row">
+            <p class="error">{{data.error}}</p>
+        </div>
     </div>
-{% include 'dash.html' %}
     <script src="{{url_for('static', filename='js/form.js')}}"></script>
 {% endblock %}
