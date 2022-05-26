@@ -9,6 +9,7 @@ preprocess/json_data.json
 csv/
 preprocess/audio
 server/audio
+preprocess/preprocess-venv
 server/server-venv
 client/client-venv
 .vscode/

@@ -33,11 +33,7 @@ def create_plots(filename):
         signal, sr, N_FFT, HOP_LENGTH, N_MFCC
     )
 
-    return {
-        'wave_plot': wave_plot,
-        'spectrogram': log_spectrogram,
-        'mfcc_plot': mfcc_plot
-    }
+    return [wave_plot, log_spectrogram, mfcc_plot]
 
 
 def create_waveplot(signal, sr, color):
@@ -58,7 +54,7 @@ def create_waveplot(signal, sr, color):
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
     plt.close("all")
-    return base64.b64encode(buffer.getbuffer()).decode('ascii')
+    return base64.b64encode(buffer.getbuffer()).decode('utf-8')
 
 
 def create_log_spectrogram(
@@ -95,7 +91,7 @@ def create_log_spectrogram(
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
     plt.close("all")
-    return base64.b64encode(buffer.getbuffer()).decode('ascii')
+    return base64.b64encode(buffer.getbuffer()).decode('utf-8')
 
 
 def create_mfcc_plot(signal, sr, n_fft, hop_length, n_mfcc):
@@ -128,7 +124,7 @@ def create_mfcc_plot(signal, sr, n_fft, hop_length, n_mfcc):
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
     plt.close("all")
-    return base64.b64encode(buffer.getbuffer()).decode('ascii')
+    return base64.b64encode(buffer.getbuffer()).decode('utf-8')
 
 
 def create_prediction_plot(predictions):
@@ -156,4 +152,4 @@ def create_prediction_plot(predictions):
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
     plt.close("all")
-    return base64.b64encode(buffer.getbuffer()).decode('ascii')
+    return base64.b64encode(buffer.getbuffer()).decode('utf-8')
