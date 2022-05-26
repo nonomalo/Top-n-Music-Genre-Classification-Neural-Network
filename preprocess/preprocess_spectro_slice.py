@@ -65,7 +65,7 @@ def main() -> None:
         args.batch_num
     )
 
-    
+
 def process_track_list(
         num_segments: int,
         dataset_path: str,
