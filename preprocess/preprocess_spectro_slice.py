@@ -10,7 +10,6 @@ import pandas as pd
 import numpy as np
 import librosa
 import math
-import os
 
 SAMPLE_RATE = 22050
 TRACK_DURATION = 30
