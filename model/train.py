@@ -21,7 +21,7 @@ BATCH_SIZE = 32
 EPOCHS = 35
 LEARNING_RATE = 0.001
 CALLBACKS = [
-    tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=10,
+    tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=5,
                                      restore_best_weights=True)
 ]
 
@@ -153,13 +153,14 @@ def display_confusion_matrix(
     :param mappings: array associated with mappings
     :return: None
     """
-    matrix = tf.math.confusion_matrix(labels, predictions)
+    matrix = tf.math.confusion_matrix(labels, predictions,
+                                      num_classes=len(mappings))
 
     plt.figure()
-    sns.heatmap(matrix,
-                xticklabels=mappings, yticklabels=mappings,
-                annot=True, fmt="g"
-                )
+    sns.heatmap(
+        matrix, xticklabels=mappings, yticklabels=mappings,
+        annot=True, fmt="g"
+    )
     plt.title("Confusion Matrix")
     plt.xlabel("Predictions")
     plt.ylabel("Labels")
@@ -182,13 +183,12 @@ def main() -> None:
     model.summary()
 
     training_inputs, remainder_inputs, training_labels, remainder_labels \
-        = train_test_split(inputs, labels, train_size=TRAINING_FRACTION)
+        = train_test_split(inputs, labels,
+                           train_size=TRAINING_FRACTION, shuffle=True)
 
-    validation_inputs, test_inputs, \
-        validation_labels, test_labels = train_test_split(remainder_inputs,
-                                                          remainder_labels,
-                                                          test_size=0.5
-                                                          )
+    validation_inputs, test_inputs, validation_labels, test_labels \
+        = train_test_split(remainder_inputs, remainder_labels,
+                           test_size=0.5, shuffle=True)
 
     history = model.fit(training_inputs, training_labels,
                         batch_size=BATCH_SIZE, epochs=EPOCHS,
