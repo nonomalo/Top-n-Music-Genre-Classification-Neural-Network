@@ -70,10 +70,6 @@ body {
     border-radius: 10px;
 }
 
-span {
-    color: white;
-}
-
 .crop-image-container {
     overflow: hidden;
     margin: 2%;

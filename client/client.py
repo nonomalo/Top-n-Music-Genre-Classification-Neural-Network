@@ -1,24 +1,14 @@
-from flask import Flask, request, render_template, redirect, url_for, jsonify
-from werkzeug.utils import secure_filename
+from flask import Flask, request, render_template, redirect, url_for
 import uuid
-import requests
 import os
-import json
 
-from utils.fetch_audio import download_wav_file, STORED_AUDIO
-from utils.create_plots import create_plots, create_prediction_plot
-from utils.process_upload import process_upload
-
-GENRE_SERVER = 'https://top-n-server.uw.r.appspot.com'
+from utils.fetch_audio import download_wav_file
+from utils.create_plots import create_plots
+from utils.process_upload import save_uploaded_file
+from utils.get_predictions import get_predictions
 
 app = Flask(__name__)
 
-ACCEPTED_EXTENSIONS = {'wav', 'mp3', 'm4a'}
-
-
-def is_allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ACCEPTED_EXTENSIONS
 
 # route to music upload page
 @app.route('/')
@@ -40,58 +30,25 @@ def upload_file():
 def fetch_data():
     audio_url = request.form.get('text')
     uploaded_file = request.files['file']
-    data = {}
 
     # create a unique id for the audio file
     unique = uuid.uuid4()
 
     if audio_url != '':
-
         data = download_wav_file(audio_url, str(unique))
 
     elif uploaded_file.filename != '':
+        data = save_uploaded_file(uploaded_file, unique)
 
-        # get extension
-        extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
-        print(extension)
-
-        if is_allowed_file(uploaded_file.filename):
-            # secure the file before saving it
-            filename = secure_filename(uploaded_file.filename)
-
-            # save file and create filename
-            store_as = os.path.splitext(STORED_AUDIO)[0] + str(unique) + extension
-            uploaded_file.save(store_as)
-
-            data['filename'], error = process_upload(store_as, extension)
-            data['title'] = 'User\'s Track'
-
-            if error:
-                return render_template('index.html', data={'error': error})
-
-        else:
-            data['error'] = \
-                f"File type {extension} is not allowed"
-            return render_template('index.html', data=data)
+    if 'error' in data:
+        return render_template('index.html', data=data)
 
     # create and save graph images for wav file
     plots = create_plots(data['filename'])
     print('created track plots')
 
-    # request genre predictions from server
-    try:
-        res = requests.post(
-            GENRE_SERVER + '/genre',
-            files={'audio': open(data['filename'], 'rb')},
-            timeout=30
-        )
-        if res.status_code == 200:
-            predict = create_prediction_plot(json.loads(res.content))
-            plots.append(predict)
-        else:
-            print(res.text)
-    except Exception as err:
-        print(err)
+    # request predictions from server
+    data, plots = get_predictions(data, plots)
 
     # remove the audio file from storage
     try:
@@ -101,8 +58,8 @@ def fetch_data():
 
     return render_template('dash.html',
                            data=data,
-                           images=plots
-                           )
+                           images=plots)
+
 
 # route to about project page
 @app.route('/about')
