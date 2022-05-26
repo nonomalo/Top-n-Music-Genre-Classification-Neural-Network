@@ -7,14 +7,22 @@
 }
 
 .placeholder {
-    padding: 10px;
     border: 1px rebeccapurple;
-    background-color: rebeccapurple;
-    border-radius: 10px;
+    border-radius: 5%;
+    max-width: 100%;
 }
 
 #title {
     font-family: "Times New Roman", serif;
+}
+
+#center-title {
+    text-align: center;
+}
+
+#list-margins {
+    margin-left: 20%;
+    margin-right: 20%;
 }
 
 .submit {
@@ -25,9 +33,10 @@ body {
     background-color: #ECECEC;
 }
 
+
 /* Dashboard css */
+
 .dashboard {
-    display: none;
     padding-top: 100px;
 }
 

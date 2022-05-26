@@ -1,38 +1,75 @@
-{% block dash %}
+{% extends 'base.html' %}
+
+<!-- Header -->
+{% block head %}
+    Top-n Music Genre Classification Neural Network
+{% endblock %}
+
+<!-- Body -->
+{% block body %}
 <div class="container dashboard" id="dashboard">
         <div class="row">
             <!-- Artist and title display -->
-            <div class="dash-text-display d-flex align-items-center justify-content-center" id="audio-title"></div>
+            <div class="dash-text-display d-flex align-items-center justify-content-around" id="audio-title">
+                {% if data.artist and data.track %}
+                    <span>Artist:&nbsp;{{ data.artist }}</span>
+                    <span>Track:&nbsp;{{ data.track }}</span>
+                {% else %}
+                    <span>{{ data.title }}</span>
+                {% endif %}
+            </div>
         </div>
         <div class="row">
             <!-- Audio data plots for wav file -->
-            <div class="col-4 dash-border" id="narrow-data">
-                <div class="row small-dash-row" id="waveform"></div>
-                <div class="row small-dash-row" id="spectrogram"></div>
-                <div class="row small-dash-row" id="mfccs"></div>
+            <div class="col-4 dash-border" id="narrow-data" >
+                <div class="row small-dash-row">
+                    <img src="data:image/png;base64,{{ images[0] }}" class="img-thumbnail mx-auto small-plot"/>
+                </div>
+                <div class="row small-dash-row">
+                    <img src="data:image/png;base64,{{ images[1] }}" class="img-thumbnail mx-auto small-plot"/>
+                </div>
+                <div class="row small-dash-row">
+                    <img src="data:image/png;base64,{{ images[2] }}" class="img-thumbnail mx-auto small-plot"/>
+                </div>
             </div>
             <!-- Prediction & Model Metrics container -->
             <div class="col-8" id="wide-data">
                 <!-- Predictions data plot -->
                 <div class="row wide-dash-row">
-                    <div class="crop-image-container dash-border" id="predictions"></div>
+                    <div class="crop-image-container dash-border">
+                        {% if data.error %}
+                            <span class="error text-center">{{ data.error }}</span>
+                        {% else %}
+                            <img src="data:image/png;base64,{{ images[3] }}" class="img-thumbnail mx-auto wide-plot">
+                        {% endif %}
+                    </div>
                 </div>
                 <!-- Model metrics display -->
                 <div class="row wide-dash-row">
                     <div class="dash-border" id="dash-model-metrics">
                         <div class="row title justify-content-center">Model Metrics</div>
                         <div class="row">
-                            <div class="col" id="model-loss"></div>
+                            <div class="col">
+                                <img src="static/img/model-loss.png" class="img-thumbnail mx-auto small-plot">
+                            </div>
                         </div>
                         <div class="row">
-                            <div class="col" id="model-accuracy"></div>
+                            <div class="col">
+                                <img src="static/img/model-accuracy.png" class="img-thumbnail mx-auto small-plot">
+                            </div>
                         </div>
                         <div class="row">
-                            <div class="col" id="confusion-matrix"></div>
+                            <div class="col">
+                                <img src="static/img/model-confusion-matrix.png" class="img-thumbnail mx-auto small-plot">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="d-flex justify-content-center">
+            <a href="{{url_for('index')}}" class="btn btn-dark">Try Again</a>
+        </div>
     </div>
+    <script src="{{url_for('static', filename='js/dash.js')}}"></script>
 {% endblock %}

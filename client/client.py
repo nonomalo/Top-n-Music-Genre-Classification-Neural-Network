@@ -1,13 +1,11 @@
-from flask import Flask, request, render_template, redirect, url_for, jsonify
+from flask import Flask, request, render_template, redirect, url_for
 import uuid
-import requests
 import os
-import json
 
 from utils.fetch_audio import download_wav_file
-from utils.create_plots import create_plots, create_prediction_plot
-
-GENRE_SERVER = 'https://top-n-server.uw.r.appspot.com'
+from utils.create_plots import create_plots
+from utils.process_upload import save_uploaded_file
+from utils.get_predictions import get_predictions
 
 app = Flask(__name__)
 
@@ -15,7 +13,7 @@ app = Flask(__name__)
 # route to music upload page
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', data={})
 
 
 # route to upload file
@@ -30,40 +28,37 @@ def upload_file():
 # route to fetch wav file from url
 @app.route('/fetch_data', methods=['POST'])
 def fetch_data():
-    audio_url = request.get_json().get('audio_url')
-    if audio_url != '':
+    audio_url = request.form.get('text')
+    uploaded_file = request.files['file']
 
-        # create a unique id for the audio file
-        unique = uuid.uuid4()
+    # create a unique id for the audio file
+    unique = uuid.uuid4()
+
+    if audio_url != '':
         data = download_wav_file(audio_url, str(unique))
 
-        # create and save graph images for wav file
-        plots = create_plots(data['filename'])
-        data['plots'] = plots
-        print('created track plots')
+    elif uploaded_file.filename != '':
+        data = save_uploaded_file(uploaded_file, unique)
 
-        # request genre predictions from server
-        try:
-            res = requests.post(
-                GENRE_SERVER + '/genre',
-                files={'audio': open(data['filename'], 'rb')},
-                timeout=30
-            )
-            if res.status_code == 200:
-                data['predictions'] = \
-                    create_prediction_plot(json.loads(res.content))
-            else:
-                print(res.text)
-        except Exception as err:
-            print(err)
+    if 'error' in data:
+        return render_template('index.html', data=data)
 
-        # remove the audio file from storage
-        try:
-            os.remove(data['filename'])
-        except Exception as err:
-            print(err)
+    # create and save graph images for wav file
+    plots = create_plots(data['filename'])
+    print('created track plots')
 
-        return jsonify(data)
+    # request predictions from server
+    data, plots = get_predictions(data, plots)
+
+    # remove the audio file from storage
+    try:
+        os.remove(data['filename'])
+    except Exception as err:
+        print(err)
+
+    return render_template('dash.html',
+                           data=data,
+                           images=plots)
 
 
 # route to about project page
