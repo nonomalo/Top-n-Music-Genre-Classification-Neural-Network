@@ -28,6 +28,7 @@ def upload_file():
 # route to fetch wav file from url
 @app.route('/fetch_data', methods=['POST'])
 def fetch_data():
+  
     audio_url = request.form.get('text')
     uploaded_file = request.files['file']
 
