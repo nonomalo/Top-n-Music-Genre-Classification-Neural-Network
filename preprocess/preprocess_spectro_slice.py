@@ -12,7 +12,7 @@ import librosa
 import math
 import os
 
-SAMPLE_RATE= 22050
+SAMPLE_RATE = 22050
 TRACK_DURATION = 30
 N_FFT = 2048
 HOP_LENGTH = 1024
@@ -51,6 +51,7 @@ mapping = [
 #     'International', 'Pop', 'Rock'
 # ]
 
+
 def main() -> None:
     """Preprocess audio files into mel spectrograms from command line
         and store as .npy files.
@@ -64,6 +65,7 @@ def main() -> None:
         args.batch_num
     )
 
+    
 def process_track_list(
         num_segments: int,
         dataset_path: str,
