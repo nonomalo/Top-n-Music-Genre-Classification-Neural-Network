@@ -1,7 +1,7 @@
-"""Evaluates a neural network model on a dataset for music genre prediction.
-"""
+"""Evaluates a neural network model on a dataset for music genre prediction."""
 
-from typing import Sequence, Dict
+from typing import Dict, Sequence
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops.numpy_ops import np_config
@@ -26,10 +26,9 @@ def evaluate_model(
     input = np.expand_dims(inputs[0], SAMPLES)
     prediction = model(input, training=False)
 
-    # map predictions into a dictionary
     prediction_scaled = tf.nn.softmax(prediction[0]).tolist()
-    json_dict = create_genre_dictionary(prediction_scaled, mappings)
-    return json_dict
+    probabilities = create_genres_dictionary(prediction_scaled, mappings)
+    return probabilities
 
 
 def evaluate_model_max(
@@ -47,7 +46,7 @@ def evaluate_model_max(
     """
     num_inputs = inputs.shape[SAMPLES]
 
-    probabilities_max = 0
+    confidence_max = 0
     predictions_max = []
 
     for i in range(num_inputs):
@@ -55,17 +54,17 @@ def evaluate_model_max(
         prediction = model(input, training=False)
 
         prediction_scaled = tf.nn.softmax(prediction[0])
-        probability = np.max(prediction_scaled)
+        confidence = np.max(prediction_scaled)
 
-        if probability > probabilities_max:
-            probabilities_max = probability
+        if confidence > confidence_max:
+            confidence_max = confidence
             predictions_max = prediction_scaled.tolist()
 
-    json_dict = create_genre_dictionary(predictions_max, mappings)
-    return json_dict
+    probabilities = create_genres_dictionary(predictions_max, mappings)
+    return probabilities
 
 
-def create_genre_dictionary(
+def create_genres_dictionary(
     predictions: Sequence[int],
     mappings: Sequence[int]
 ) -> Dict[str, float]:
@@ -76,11 +75,11 @@ def create_genre_dictionary(
     :param mappings: array associated with mappings
     :return: dictionary of genres with each prediction
     """
-    json_dict = {"genres": []}
+    probabilities = {"genres": []}
 
     for i in range(len(mappings)):
-        json_dict["genres"].append({
+        probabilities["genres"].append({
             "genre": mappings[i],
             "prediction": predictions[i]
         })
-    return json_dict
+    return probabilities

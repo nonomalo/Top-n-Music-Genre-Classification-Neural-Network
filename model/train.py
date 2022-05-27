@@ -190,11 +190,11 @@ def main() -> None:
         = train_test_split(remainder_inputs, remainder_labels,
                            test_size=0.5, shuffle=True)
 
-    history = model.fit(training_inputs, training_labels,
-                        batch_size=BATCH_SIZE, epochs=EPOCHS,
-                        callbacks=CALLBACKS,
-                        validation_data=(validation_inputs, validation_labels)
-                        )
+    history = model.fit(
+        training_inputs, training_labels,
+        batch_size=BATCH_SIZE, epochs=EPOCHS, callbacks=CALLBACKS,
+        validation_data=(validation_inputs, validation_labels)
+    )
     display_training_metrics(history)
     test_model(model, test_inputs, test_labels, mappings)
 
