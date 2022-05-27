@@ -2,10 +2,10 @@ import os
 import yt_dlp
 import re
 
-STORED_AUDIO = 'audio/temp.wav'
+STORED_FILENAME = 'temp'
 
 
-def download_wav_file(url, unique_id):
+def download_wav_file(url, unique_id, audio_dir):
     """
     Download and save the first 30 seconds of
     audio from the url in wav format
@@ -15,7 +15,7 @@ def download_wav_file(url, unique_id):
     data = {}
 
     # remove extension from STORED_AUDIO path
-    store_as = os.path.splitext(STORED_AUDIO)[0] + unique_id
+    store_as = os.path.join(audio_dir, STORED_FILENAME + unique_id)
 
     try:
         ydl_options = {

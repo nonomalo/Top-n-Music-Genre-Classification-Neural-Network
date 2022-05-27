@@ -9,6 +9,10 @@ from utils.get_predictions import get_predictions
 
 app = Flask(__name__)
 
+# create directory to save files to
+audio_dir = os.path.join(app.instance_path, 'audio')
+os.makedirs(audio_dir, exist_ok=True)
+
 
 # route to music upload page
 @app.route('/')
@@ -35,10 +39,10 @@ def fetch_data():
     unique = uuid.uuid4()
 
     if audio_url != '':
-        data = download_wav_file(audio_url, str(unique))
+        data = download_wav_file(audio_url, str(unique), audio_dir)
 
     elif uploaded_file.filename != '':
-        data = save_uploaded_file(uploaded_file, unique)
+        data = save_uploaded_file(uploaded_file, unique, audio_dir)
 
     if 'error' in data:
         return render_template('index.html', data=data)
@@ -52,6 +56,7 @@ def fetch_data():
 
     # remove the audio file from storage
     try:
+        print(data['filename'])
         os.remove(data['filename'])
     except Exception as err:
         print(err)
