@@ -118,9 +118,6 @@ def process_track_list(
             # load the audio file
             signal, sr = librosa.load(file, sr=SAMPLE_RATE)
 
-            # normalize waveform
-            signal_norm = librosa.util.normalize(signal)
-
         except FileNotFoundError:
 
             print(f'File Not Found: {file}')

@@ -1,12 +1,10 @@
 from flask import Flask, request, jsonify, render_template
 from werkzeug.utils import secure_filename
 import os
-import math
 import tensorflow as tf
 from utils.process import process_track
-from utils.process import SAMPLE_RATE, TRACK_DURATION, HOP_LENGTH, MEL_BINS
 from model.dataset import load_mappings, preprocess_inputs
-from model.evaluate import evaluate_model
+from model.evaluate import evaluate_model_max
 
 app = Flask(__name__)
 
@@ -54,30 +52,22 @@ def predict_genre():
     audio_file.save(os.path.join(audio_dir, filename))
 
     # get the data from processed wav file
-    mel_norm = process_track(audio_dir + '/' + filename)
-    if mel_norm is None:
+    mel_array, error = process_track(audio_dir + '/' + filename)
+    if error:
+        return jsonify({'error': error}), 400
+    if mel_array is None:
         return jsonify({
             'error': 'Unable to extract data from audio file'
         }), 400
 
-    # check that data shape is correct
-    expected_melspec_length = math.ceil(
-        (SAMPLE_RATE * TRACK_DURATION) / HOP_LENGTH
-    )
-    if mel_norm.shape != (MEL_BINS, expected_melspec_length):
-        return jsonify({
-            'error': 'MFCC shape error: track  \
-            may not be long enough'
-        }), 422
-
     # run the processed data through the prediction model
-    model = tf.keras.models.load_model('model/model.h5')
-    inputs = preprocess_inputs([mel_norm])
+    model = tf.keras.models.load_model('model/model_3.h5')
+    inputs = preprocess_inputs(mel_array)
     mappings = load_mappings()
-    json_dict = evaluate_model(model, inputs, mappings)
+    json_dict = evaluate_model_max(model, inputs, mappings)
 
     return jsonify(json_dict), 200
 
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=8080)
+    app.run(host='127.0.0.1', port=8080, debug=True)
