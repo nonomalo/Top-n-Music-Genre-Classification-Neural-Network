@@ -47,7 +47,7 @@ def evaluate_model(
     model: tf.keras.Model,
     inputs: Sequence[int],
     mappings: Sequence[int],
-    display: int,
+    display: int = 1,
     labels: Sequence[int] = None
 ) -> None:
     """Evaluates model on a dataset and displays predictions for
@@ -56,7 +56,7 @@ def evaluate_model(
     :param model: preconfigured model
     :param inputs: array associated with input
     :param mappings: array associated with mappings
-    :param display: number of predictions to display
+    :param display: number of predictions to display, optional
     :param labels: array associated with labels, optional
     :return: None
     """
@@ -64,11 +64,12 @@ def evaluate_model(
         input = np.expand_dims(inputs[i], SAMPLES)
         prediction = model(input, training=False)
 
-        if any(labels):
-            plt.title(f"Prediction for {mappings[labels[i]]}")
-        else:
-            plt.title("Prediction")
+        title = "Prediction"
+        if labels is not None:
+            label = mappings[labels[i]]
+            title += f" for {label}"
 
+        plt.title(title)
         plt.bar(mappings, tf.nn.softmax(prediction[0]))
         plt.xlabel("Genres")
         plt.ylabel("Probability")

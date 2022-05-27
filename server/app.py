@@ -74,7 +74,7 @@ def predict_genre():
     model = tf.keras.models.load_model('model/model.h5')
     inputs = preprocess_inputs([mel_norm])
     mappings = load_mappings()
-    json_dict = evaluate_model(model, inputs, mappings, 1)
+    json_dict = evaluate_model(model, inputs, mappings)
 
     return jsonify(json_dict), 200
 
