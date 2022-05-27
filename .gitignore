@@ -12,5 +12,6 @@ server/audio
 preprocess/preprocess-venv
 server/server-venv
 client/client-venv
+client/instance
 .vscode/
 __pycache__/
