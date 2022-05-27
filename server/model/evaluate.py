@@ -72,7 +72,7 @@ def create_genre_dictionary(
     """Creates a dictionary with probabilities associated with
     each genre.
 
-    :param inputs: array associated with input
+    :param predictions: list of index-based probabilities
     :param mappings: array associated with mappings
     :return: dictionary of genres with each prediction
     """
