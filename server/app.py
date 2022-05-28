@@ -29,7 +29,6 @@ def home():
 @app.route('/genre', methods=['POST'])
 def predict_genre():
     if 'audio' not in request.files:
-        print(request.files)
         return jsonify({
             'error': 'Expecting audio file, but no file found'
         }), 406
