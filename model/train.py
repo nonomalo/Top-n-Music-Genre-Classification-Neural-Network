@@ -13,8 +13,11 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 from build import build_model
-from dataset import create_dataset, load_mappings
-from dataset import CHANNELS, FEATURES, TIME
+from dataset import CHANNELS
+from dataset import create_dataset
+from dataset import FEATURES
+from dataset import load_mappings
+from dataset import TIME
 
 TRAINING_FRACTION = 0.9
 BATCH_SIZE = 32
@@ -182,13 +185,15 @@ def main() -> None:
         model = configure_model(inputs, mappings)
     model.summary()
 
-    training_inputs, remainder_inputs, training_labels, remainder_labels \
-        = train_test_split(inputs, labels,
-                           train_size=TRAINING_FRACTION, shuffle=True)
+    training_inputs, remainder_inputs, training_labels, remainder_labels = (
+        train_test_split(inputs, labels,
+                         train_size=TRAINING_FRACTION, shuffle=True)
+    )
 
-    validation_inputs, test_inputs, validation_labels, test_labels \
-        = train_test_split(remainder_inputs, remainder_labels,
-                           test_size=0.5, shuffle=True)
+    validation_inputs, test_inputs, validation_labels, test_labels = (
+        train_test_split(remainder_inputs, remainder_labels,
+                         test_size=0.5, shuffle=True)
+    )
 
     history = model.fit(
         training_inputs, training_labels,
