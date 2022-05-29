@@ -19,6 +19,7 @@ def download_wav_file(url, unique_id, audio_dir):
 
     try:
         ydl_options = {
+            'playlist_items': '1',
             'external_downloader': 'ffmpeg',
             'external_downloader_args': ['-to', '00:00:30'],
             'postprocessors': [{

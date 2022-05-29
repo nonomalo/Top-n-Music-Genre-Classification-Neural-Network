@@ -140,5 +140,8 @@ def extract_signal(file_path):
 
     except FileNotFoundError:
         return None, None, f'File Not Found: {file_path}'
+    except Exception:
+        filename = os.path.basename(file_path)
+        return None, None, f'Unable to extract audio data from {filename}'
 
     return signal, num_segments, None
