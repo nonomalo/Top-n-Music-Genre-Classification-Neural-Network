@@ -53,7 +53,7 @@ def load_mappings() -> np.array:
             "Old-Time / Historic", "Country", "Pop", "Rock",
             "Easy Listening", "Soul-RnB", "Electronic",
             "Folk", "Spoken", "Hip-Hop", "Experimental",
-            "Instrumental"
+            "Instrumental",
         ]
     )
     return mappings

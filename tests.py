@@ -12,14 +12,14 @@ class TestCase(unittest.TestCase):
         expected = "Hello World"
         self.assertEqual(main.main(), expected)
 
-    def testLoadMappings_Correct(self):
+    def testLoadMappings_MediumDataset(self):
         expected = np.array(
             [
                 "International", "Blues", "Jazz", "Classical",
                 "Old-Time / Historic", "Country", "Pop", "Rock",
                 "Easy Listening", "Soul-RnB", "Electronic",
                 "Folk", "Spoken", "Hip-Hop", "Experimental",
-                "Instrumental"
+                "Instrumental",
             ]
         )
         self.assertEqual(load_mappings().tolist(), expected.tolist())
