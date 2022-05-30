@@ -13,10 +13,10 @@
     </div>
         <div class="row">
             <!-- Artist and title display -->
-            <div class="dash-text-display d-flex align-items-center justify-content-around" id="audio-title">
+            <div class="dash-text-display row align-items-center justify-content-center" id="audio-title">
                 {% if data.artist and data.track %}
-                    <span>Artist:&nbsp;{{ data.artist }}</span>
-                    <span>Track:&nbsp;{{ data.track }}</span>
+                    <span class="flex-column">Artist:&nbsp;{{ data.artist }}</span>
+                    <span class="flex-column">Track:&nbsp;{{ data.track }}</span>
                 {% else %}
                     <span>{{ data.title }}</span>
                 {% endif %}
