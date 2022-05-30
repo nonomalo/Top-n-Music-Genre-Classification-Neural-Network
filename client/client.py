@@ -1,9 +1,8 @@
 from flask import Flask, request, render_template, redirect, url_for
 import uuid
 import os
-import json
 
-from utils.fetch_audio import download_wav_file
+from utils.fetch_audio import download_wav_file, check_for_nested_error
 from utils.create_plots import create_plots
 from utils.process_upload import save_uploaded_file
 from utils.get_predictions import get_predictions
@@ -67,17 +66,9 @@ def fetch_data():
     except Exception as err:
         print(err)
 
-    try:
-        if data['error']:
-            try:
-                nested = json.loads(data['error'])
-                if nested['error']:
-                    data['error'] = nested['error']
-            except Exception as err:
-                print(err)
-            return render_template('index.html', data=data)
-    except KeyError:
-        pass
+    data = check_for_nested_error(data)
+    if 'error' in data:
+        return render_template('index.html', data=data)
 
     return render_template('dash.html',
                            data=data,

@@ -1,6 +1,7 @@
 import os
 import yt_dlp
 import re
+import json
 
 STORED_FILENAME = 'temp'
 
@@ -50,4 +51,18 @@ def download_wav_file(url, unique_id, audio_dir):
         error = re.sub(r'\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))', '', str(e))
         data['error'] = error
 
+    return data
+
+
+def check_for_nested_error(data):
+    try:
+        if 'error' in data:
+            try:
+                nested = json.loads(data['error'])
+                if 'error' in nested:
+                    data['error'] = nested['error']
+            except Exception as err:
+                print(err)
+    except KeyError:
+        pass
     return data
