@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for
 import uuid
 import os
 
-from utils.fetch_audio import download_wav_file
+from utils.fetch_audio import download_wav_file, check_for_nested_error
 from utils.create_plots import create_plots
 from utils.process_upload import save_uploaded_file
 from utils.get_predictions import get_predictions
@@ -44,6 +44,11 @@ def fetch_data():
     elif uploaded_file.filename != '':
         data = save_uploaded_file(uploaded_file, unique, audio_dir)
 
+    else:
+        return render_template(
+            'index.html',
+            data={'error': 'Please upload a file or submit a url.'})
+
     if 'error' in data:
         return render_template('index.html', data=data)
 
@@ -60,6 +65,10 @@ def fetch_data():
         os.remove(data['filename'])
     except Exception as err:
         print(err)
+
+    data = check_for_nested_error(data)
+    if 'error' in data:
+        return render_template('index.html', data=data)
 
     return render_template('dash.html',
                            data=data,
