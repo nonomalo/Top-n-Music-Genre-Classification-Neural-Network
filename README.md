@@ -1,6 +1,4 @@
-:musical_note:
-
-## Top-n-Music-Genre-Classification-Neural-Network
+## Top-n-Music-Genre-Classification-Neural-Network :musical_note:
 
 ### Developers:
 * [Brooks Burns](https://github.com/Brrookss)

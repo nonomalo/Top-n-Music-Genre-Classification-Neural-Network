@@ -1,6 +1,4 @@
-:headphones:
-
-## Top-n-Music-Genre-Classification-Neural-Network
+## Top-n-Music-Genre-Classification-Neural-Network :headphones:
 
 This Flask web app allows a user to analyze an audio file in one of two ways: 
 
