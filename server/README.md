@@ -1,5 +1,4 @@
-:musical_score:
-## Top-n-Music-Genre-Classification-Neural-Network
+## Top-n-Music-Genre-Classification-Neural-Network :musical_score:
 
 This music genre prediction service applies a convolutional neural network
 model trained on data from the [Free Music Archive](https://github.com/mdeff/fma) dataset. 
