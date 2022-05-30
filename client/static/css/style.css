@@ -6,10 +6,16 @@
     font-size: 115%;
 }
 
-.placeholder {
+#feature-img-container {
     border: 1px rebeccapurple;
     border-radius: 5%;
     max-width: 100%;
+    overflow: hidden;
+}
+
+.placeholder {
+    max-width: 175%;
+    margin: 0% 0% 0% -35%;
 }
 
 #title {
@@ -33,17 +39,22 @@ body {
     background-color: #ECECEC;
 }
 
+
 .card-img-top {
     width: 100%;
     object-fit: cover;
 }
 
+.spinner{
+    display: none;
+    padding: 5px;
+}
+
+.error {
+    color: red;
+}
 
 /* Dashboard css */
-
-.dashboard {
-    padding-top: 100px;
-}
 
 .dash-border {
     border-style: solid;

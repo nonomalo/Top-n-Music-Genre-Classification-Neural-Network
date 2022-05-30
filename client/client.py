@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for
 import uuid
 import os
+import json
 
 from utils.fetch_audio import download_wav_file
 from utils.create_plots import create_plots
@@ -44,6 +45,11 @@ def fetch_data():
     elif uploaded_file.filename != '':
         data = save_uploaded_file(uploaded_file, unique, audio_dir)
 
+    else:
+        return render_template(
+            'index.html',
+            data={'error': 'Please upload a file or submit a url.'})
+
     if 'error' in data:
         return render_template('index.html', data=data)
 
@@ -60,6 +66,18 @@ def fetch_data():
         os.remove(data['filename'])
     except Exception as err:
         print(err)
+
+    try:
+        if data['error']:
+            try:
+                nested = json.loads(data['error'])
+                if nested['error']:
+                    data['error'] = nested['error']
+            except Exception as err:
+                print(err)
+            return render_template('index.html', data=data)
+    except KeyError:
+        pass
 
     return render_template('dash.html',
                            data=data,
