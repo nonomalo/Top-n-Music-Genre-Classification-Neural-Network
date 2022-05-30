@@ -13,8 +13,11 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 from build import build_model
-from dataset import create_dataset, load_mappings
-from dataset import CHANNELS, FEATURES, TIME
+from dataset import CHANNELS
+from dataset import create_dataset
+from dataset import FEATURES
+from dataset import load_mappings
+from dataset import TIME
 
 TRAINING_FRACTION = 0.9
 BATCH_SIZE = 32
@@ -76,16 +79,6 @@ def configure_model(
     return model
 
 
-def display_training_metrics(history: tf.keras.callbacks.History) -> None:
-    """Displays metrics associated with model during training.
-
-    :param history: history object returned by model after training
-    :return: None
-    """
-    display_loss(history)
-    display_accuracy(history)
-
-
 def display_loss(history: tf.keras.callbacks.History) -> None:
     """Displays loss metrics.
 
@@ -121,35 +114,33 @@ def display_accuracy(history: tf.keras.callbacks.History) -> None:
 def test_model(
     model: tf.keras.Model,
     inputs: Sequence[int],
-    labels: Sequence[int],
-    mappings: Sequence[int]
-) -> None:
-    """Uses trained model to make predictions on test data. Accuracy
-    on entire test dataset and a confusion matrix are displayed.
+    labels: Sequence[int]
+) -> Sequence[int]:
+    """Uses trained model to make predictions on test data. Accuracy across
+    entire test dataset is displayed.
 
     :param model: trained model
     :param inputs: array associated with test inputs
     :param labels: array associated with test labels
-    :param mappings: array associated with mappings
-    :return: None
+    :return: array associated with model predictions
     """
     predictions = np.argmax(model.predict(inputs), axis=1)
     correct = sum(predictions == labels)
     accuracy = correct / len(labels)
 
     print(f"Test set accuracy: {accuracy:.0%}")
-    display_confusion_matrix(labels, predictions, mappings)
+    return predictions
 
 
 def display_confusion_matrix(
-    labels: Sequence[int],
     predictions: Sequence[int],
+    labels: Sequence[int],
     mappings: Sequence[int]
 ) -> None:
     """Displays a confusion matrix.
 
-    :param inputs: array associated with test inputs
     :param predictions: array associated with model predictions
+    :param labels: array associated with test labels
     :param mappings: array associated with mappings
     :return: None
     """
@@ -182,21 +173,25 @@ def main() -> None:
         model = configure_model(inputs, mappings)
     model.summary()
 
-    training_inputs, remainder_inputs, training_labels, remainder_labels \
-        = train_test_split(inputs, labels,
-                           train_size=TRAINING_FRACTION, shuffle=True)
+    training_inputs, remainder_inputs, training_labels, remainder_labels = (
+        train_test_split(inputs, labels,
+                         train_size=TRAINING_FRACTION, shuffle=True)
+    )
+    validation_inputs, test_inputs, validation_labels, test_labels = (
+        train_test_split(remainder_inputs, remainder_labels,
+                         test_size=0.5, shuffle=True)
+    )
 
-    validation_inputs, test_inputs, validation_labels, test_labels \
-        = train_test_split(remainder_inputs, remainder_labels,
-                           test_size=0.5, shuffle=True)
+    history = model.fit(
+        training_inputs, training_labels,
+        batch_size=BATCH_SIZE, epochs=EPOCHS, callbacks=CALLBACKS,
+        validation_data=(validation_inputs, validation_labels)
+    )
+    display_loss(history)
+    display_accuracy(history)
 
-    history = model.fit(training_inputs, training_labels,
-                        batch_size=BATCH_SIZE, epochs=EPOCHS,
-                        callbacks=CALLBACKS,
-                        validation_data=(validation_inputs, validation_labels)
-                        )
-    display_training_metrics(history)
-    test_model(model, test_inputs, test_labels, mappings)
+    predictions = test_model(model, test_inputs, test_labels)
+    display_confusion_matrix(predictions, test_labels, mappings)
 
     if args.save:
         model.save(args.save)

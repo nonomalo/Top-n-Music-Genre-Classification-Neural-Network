@@ -42,15 +42,18 @@ def preprocess_inputs(inputs: Sequence[int]) -> np.array:
 
 
 def load_mappings() -> np.array:
-    """Returns mappings data.
+    """Returns mappings data associated with the Free Music Archive (FMA)
+    medium dataset.
 
     :return: array associated with mappings
     """
-    mappings = np.array([
-        "International", "Blues", "Jazz", "Classical",
-        "Old-Time / Historic", "Country", "Pop", "Rock",
-        "Easy Listening", "Soul-RnB", "Electronic",
-        "Folk", "Spoken", "Hip-Hop", "Experimental",
-        "Instrumental"
-    ])
+    mappings = np.array(
+        [
+            "International", "Blues", "Jazz", "Classical",
+            "Old-Time / Historic", "Country", "Pop", "Rock",
+            "Easy Listening", "Soul-RnB", "Electronic",
+            "Folk", "Spoken", "Hip-Hop", "Experimental",
+            "Instrumental",
+        ]
+    )
     return mappings

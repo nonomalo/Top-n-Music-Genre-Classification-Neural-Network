@@ -11,7 +11,8 @@ import numpy as np
 from sklearn.utils import shuffle
 import tensorflow as tf
 
-from dataset import load_mappings, preprocess_inputs
+from dataset import load_mappings
+from dataset import preprocess_inputs
 from dataset import SAMPLES
 from train import test_model
 
