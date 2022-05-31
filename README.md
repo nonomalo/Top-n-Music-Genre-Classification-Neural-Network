@@ -7,14 +7,14 @@
 * [Sydney Somerfield](https://github.com/somesyd)
 
 ### Goal
-Train a neural network model to accurately predict musical genre for a previously unknown audio clip
+Train a neural network model to accurately predict the musical genre for a previously unknown audio clip
 
 ### Project
 To train the model we used the [Free Music Archive](https://github.com/mdeff/fma), a dataset of 25,000 tracks classified into 16 genres. 
 
-Using Librosa, each 30 second track in the dataset was sliced into 5 segments and converted into mel-scaled spectrogram
+Using Librosa, each 30 second track in the dataset was sliced into 5 segments and each segment was converted into a mel-scaled spectrogram
 (a visualization of the frequency spectrum over time). Convolutional neural networks are commonly used for image classification tasks, so 
-we were able to build a convolutional neural network model with the audio spectrogram "images" using Keras and TensorFlow.
+we built a convolutional neural network model with the audio spectrogram "images" using Keras and TensorFlow.
 
 #### Genre Prediction API
 
