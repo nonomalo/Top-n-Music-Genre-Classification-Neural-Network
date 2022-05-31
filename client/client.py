@@ -42,8 +42,9 @@ def fetch_data():
         data = download_wav_file(audio_url, str(unique), audio_dir)
 
     elif uploaded_file.filename != '':
-        data = save_uploaded_file(uploaded_file, unique, audio_dir)
-
+        data = save_uploaded_file(
+            uploaded_file, unique,
+            audio_dir, user_file=True)
     else:
         return render_template(
             'index.html',
@@ -53,7 +54,9 @@ def fetch_data():
         return render_template('index.html', data=data)
 
     # create and save graph images for wav file
-    plots = create_plots(data['filename'])
+    plots, error = create_plots(data['filename'])
+    if error:
+        return render_template('index.html', data={'error': error})
     print('created track plots')
 
     # request predictions from server

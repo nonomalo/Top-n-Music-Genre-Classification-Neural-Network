@@ -22,7 +22,12 @@ def create_plots(filename):
     :param filename: path to the wav file
     :return: dict of binary images
     """
-    signal, sr = librosa.load(filename, sr=22050)
+    try:
+        signal, sr = librosa.load(filename, sr=22050)
+    except Exception as err:
+        print(err)
+        return None, 'Unable to extract data from audio file'
+
     wave_plot = create_waveplot(signal, sr, COLOR)
 
     log_spectrogram = create_log_spectrogram(
@@ -33,7 +38,7 @@ def create_plots(filename):
         signal, sr, N_FFT, HOP_LENGTH, N_MFCC
     )
 
-    return [wave_plot, log_spectrogram, mfcc_plot]
+    return [wave_plot, log_spectrogram, mfcc_plot], None
 
 
 def create_waveplot(signal, sr, color):
